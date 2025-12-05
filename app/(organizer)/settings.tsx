@@ -1,0 +1,254 @@
+import { useApp } from '@/contexts/AppContext';
+import { router } from 'expo-router';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
+import { User, Phone, LogOut, Info, Shield, Bell, ChevronLeft } from 'lucide-react-native';
+import * as Haptics from 'expo-haptics';
+
+export default function OrganizerSettings() {
+  const { currentUser, switchUser } = useApp();
+
+  const handleLogout = () => {
+    Alert.alert('התנתק', 'האם אתה בטוח שברצונך להתנתק?', [
+      {
+        text: 'ביטול',
+        style: 'cancel',
+      },
+      {
+        text: 'התנתק',
+        style: 'destructive',
+        onPress: async () => {
+          await switchUser('');
+          router.replace('/');
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        },
+      },
+    ]);
+  };
+
+  return (
+    <View style={styles.container}>
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+        <View style={styles.header}>
+          <Text style={styles.title}>הגדרות</Text>
+          <Text style={styles.subtitle}>נהל את החשבון שלך</Text>
+        </View>
+
+        <View style={styles.profileCard}>
+          <View style={styles.profileIcon}>
+            <User size={32} color="#4F46E5" />
+          </View>
+          <View style={styles.profileInfo}>
+            <Text style={styles.profileName}>{currentUser?.name}</Text>
+            <View style={styles.profileDetail}>
+              <Text style={styles.profilePhone}>{currentUser?.phone}</Text>
+              <Phone size={16} color="#6B7280" />
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>כללי</Text>
+          <View style={styles.menuCard}>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                Alert.alert('פרופיל', 'דף פרופיל בקרוב...');
+              }}
+            >
+              <View style={styles.menuItemRight}>
+                <ChevronLeft size={20} color="#9CA3AF" />
+                <Text style={styles.menuItemText}>פרופיל</Text>
+              </View>
+              <User size={20} color="#6B7280" />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                Alert.alert('התראות', 'הגדרות התראות בקרוב...');
+              }}
+            >
+              <View style={styles.menuItemRight}>
+                <ChevronLeft size={20} color="#9CA3AF" />
+                <Text style={styles.menuItemText}>התראות</Text>
+              </View>
+              <Bell size={20} color="#6B7280" />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>תמיכה</Text>
+          <View style={styles.menuCard}>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                Alert.alert('אודות', 'Haluka v1.0\n\nאפליקציה לניהול מכרזי עבודה מהירים');
+              }}
+            >
+              <View style={styles.menuItemRight}>
+                <ChevronLeft size={20} color="#9CA3AF" />
+                <Text style={styles.menuItemText}>אודות</Text>
+              </View>
+              <Info size={20} color="#6B7280" />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                Alert.alert('פרטיות', 'מדיניות פרטיות בקרוב...');
+              }}
+            >
+              <View style={styles.menuItemRight}>
+                <ChevronLeft size={20} color="#9CA3AF" />
+                <Text style={styles.menuItemText}>פרטיות</Text>
+              </View>
+              <Shield size={20} color="#6B7280" />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <LogOut size={24} color="#DC2626" />
+          <Text style={styles.logoutButtonText}>התנתק</Text>
+        </TouchableOpacity>
+
+        <Text style={styles.version}>גרסה 1.0.0</Text>
+      </ScrollView>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#F9FAFB',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 20,
+  },
+  header: {
+    marginBottom: 24,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: '700' as const,
+    color: '#111827',
+    marginBottom: 4,
+    textAlign: 'right',
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#6B7280',
+    textAlign: 'right',
+  },
+  profileCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 24,
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    gap: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  profileIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#EEF2FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  profileInfo: {
+    flex: 1,
+    alignItems: 'flex-end',
+  },
+  profileName: {
+    fontSize: 20,
+    fontWeight: '700' as const,
+    color: '#111827',
+    marginBottom: 4,
+  },
+  profileDetail: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    gap: 8,
+  },
+  profilePhone: {
+    fontSize: 16,
+    color: '#6B7280',
+  },
+  section: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    color: '#6B7280',
+    marginBottom: 12,
+    textAlign: 'right',
+  },
+  menuCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  menuItem: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+  },
+  menuItemRight: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+  },
+  menuItemText: {
+    fontSize: 16,
+    color: '#111827',
+  },
+  logoutButton: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 16,
+    borderRadius: 12,
+    gap: 8,
+    borderWidth: 2,
+    borderColor: '#DC2626',
+    marginTop: 12,
+  },
+  logoutButtonText: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    color: '#DC2626',
+  },
+  version: {
+    fontSize: 14,
+    color: '#9CA3AF',
+    textAlign: 'center',
+    marginTop: 24,
+  },
+});
