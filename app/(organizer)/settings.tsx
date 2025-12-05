@@ -2,11 +2,35 @@ import { useApp } from '@/contexts/AppContext';
 import { router } from 'expo-router';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { User, Phone, LogOut, Info, Shield, Bell, ChevronLeft } from 'lucide-react-native';
+import { User, Phone, LogOut, Info, Shield, Bell, ChevronLeft, RefreshCw } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 
 export default function OrganizerSettings() {
-  const { currentUser, switchUser } = useApp();
+  const { currentUser, switchUser, mockUsers } = useApp();
+
+  const handleSwitchRole = () => {
+    const participant = mockUsers.find((u) => u.role === 'participant');
+    if (participant) {
+      Alert.alert(
+        'החלף תפקיד',
+        'האם תרצה לעבור למצב משתתף לצורך בחינה?',
+        [
+          {
+            text: 'ביטול',
+            style: 'cancel',
+          },
+          {
+            text: 'עבור למשתתף',
+            onPress: async () => {
+              await switchUser(participant.id);
+              router.replace('/participant/home' as any);
+              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            },
+          },
+        ]
+      );
+    }
+  };
 
   const handleLogout = () => {
     Alert.alert('התנתק', 'האם אתה בטוח שברצונך להתנתק?', [
@@ -46,6 +70,22 @@ export default function OrganizerSettings() {
             </View>
           </View>
         </View>
+
+        <TouchableOpacity
+          style={styles.switchRoleCard}
+          onPress={handleSwitchRole}
+          activeOpacity={0.7}
+        >
+          <View style={styles.switchRoleContent}>
+            <View style={styles.switchRoleIcon}>
+              <RefreshCw size={24} color="#FFFFFF" />
+            </View>
+            <View style={styles.switchRoleText}>
+              <Text style={styles.switchRoleTitle}>מצב בחינה</Text>
+              <Text style={styles.switchRoleSubtitle}>עבור למשתתף כדי לבדוק את הצד השני</Text>
+            </View>
+          </View>
+        </TouchableOpacity>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>כללי</Text>
@@ -251,5 +291,43 @@ const styles = StyleSheet.create({
     color: '#9CA3AF',
     textAlign: 'center',
     marginTop: 24,
+  },
+  switchRoleCard: {
+    backgroundColor: '#4F46E5',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 24,
+    shadowColor: '#4F46E5',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  switchRoleContent: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    gap: 16,
+  },
+  switchRoleIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  switchRoleText: {
+    flex: 1,
+    alignItems: 'flex-end',
+  },
+  switchRoleTitle: {
+    fontSize: 18,
+    fontWeight: '700' as const,
+    color: '#FFFFFF',
+    marginBottom: 4,
+  },
+  switchRoleSubtitle: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.8)',
   },
 });

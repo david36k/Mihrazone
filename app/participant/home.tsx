@@ -1,6 +1,7 @@
 import { useParticipantTenders, useApp } from '@/contexts/AppContext';
 import { router } from 'expo-router';
 import { useState } from 'react';
+import * as Haptics from 'expo-haptics';
 import {
   View,
   Text,
@@ -8,14 +9,39 @@ import {
   StyleSheet,
   ScrollView,
   SafeAreaView,
+  Alert,
 } from 'react-native';
-import { Calendar, Clock, DollarSign, Briefcase, History as HistoryIcon } from 'lucide-react-native';
+import { Calendar, Clock, DollarSign, Briefcase, History as HistoryIcon, RefreshCw } from 'lucide-react-native';
 import { Tender } from '@/types';
 
 export default function ParticipantHome() {
   const { active, history } = useParticipantTenders();
-  const { currentUser } = useApp();
+  const { currentUser, switchUser, mockUsers } = useApp();
   const [selectedTab, setSelectedTab] = useState<'active' | 'history'>('active');
+
+  const handleSwitchRole = () => {
+    const organizer = mockUsers.find((u) => u.role === 'organizer');
+    if (organizer) {
+      Alert.alert(
+        'החלף תפקיד',
+        'האם תרצה לעבור למצב מארגן לצורך בחינה?',
+        [
+          {
+            text: 'ביטול',
+            style: 'cancel',
+          },
+          {
+            text: 'עבור למארגן',
+            onPress: async () => {
+              await switchUser(organizer.id);
+              router.replace('/(organizer)/dashboard' as any);
+              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            },
+          },
+        ]
+      );
+    }
+  };
 
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('en-US', {
@@ -98,8 +124,19 @@ export default function ParticipantHome() {
     <View style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
-          <Text style={styles.greeting}>Hello, {currentUser?.name || 'User'}</Text>
-          <Text style={styles.subtitle}>Your job opportunities</Text>
+          <View style={styles.headerContent}>
+            <TouchableOpacity
+              style={styles.switchButton}
+              onPress={handleSwitchRole}
+              activeOpacity={0.7}
+            >
+              <RefreshCw size={20} color="#4F46E5" />
+            </TouchableOpacity>
+            <View style={styles.headerText}>
+              <Text style={styles.greeting}>Hello, {currentUser?.name || 'User'}</Text>
+              <Text style={styles.subtitle}>Your job opportunities</Text>
+            </View>
+          </View>
         </View>
 
         <View style={styles.tabs}>
@@ -189,6 +226,23 @@ const styles = StyleSheet.create({
   header: {
     padding: 20,
     paddingBottom: 16,
+  },
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  headerText: {
+    flex: 1,
+  },
+  switchButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: '#EEF2FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 12,
   },
   greeting: {
     fontSize: 28,
