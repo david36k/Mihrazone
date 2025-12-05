@@ -13,7 +13,7 @@ import {
   ActivityIndicator,
   Modal,
 } from 'react-native';
-import { Calendar, Clock, DollarSign, Users, Check, X, Search } from 'lucide-react-native';
+import { Calendar, Clock, DollarSign, Users, Check, X, Search, ChevronDown } from 'lucide-react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as Haptics from 'expo-haptics';
 import { toast } from 'sonner-native';
@@ -160,7 +160,7 @@ export default function CreateTender() {
           <View style={styles.field}>
             <Text style={styles.label}>Date *</Text>
             <TouchableOpacity
-              style={styles.inputButton}
+              style={styles.inputButtonClickable}
               onPress={() => setShowDatePicker(true)}
             >
               <Calendar size={20} color="#6B7280" />
@@ -172,6 +172,7 @@ export default function CreateTender() {
                   day: 'numeric',
                 })}
               </Text>
+              <ChevronDown size={20} color="#9CA3AF" />
             </TouchableOpacity>
           </View>
 
@@ -446,6 +447,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 12,
+    padding: 16,
+    gap: 12,
+  },
+  inputButtonClickable: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F9FAFB',
     borderWidth: 1,
     borderColor: '#E5E7EB',
     borderRadius: 12,

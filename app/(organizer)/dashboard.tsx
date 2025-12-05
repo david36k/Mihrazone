@@ -1,12 +1,16 @@
 import { useOrganizerTenders, useApp } from '@/contexts/AppContext';
 import { router } from 'expo-router';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Animated, Dimensions } from 'react-native';
-import { Plus, Calendar, Clock, Users, DollarSign, ChevronLeft, Filter, X } from 'lucide-react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Animated, Dimensions, LayoutAnimation, UIManager, Platform } from 'react-native';
+import { Plus, Calendar, Clock, Users, ChevronLeft, Filter, X, Briefcase, TrendingUp } from 'lucide-react-native';
 import { Tender, TenderStatus } from '@/types';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { formatDate, getStatusColor, getStatusText } from '@/utils/formatting';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
+
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 export default function OrganizerDashboard() {
   const tenders = useOrganizerTenders();
@@ -62,6 +66,10 @@ export default function OrganizerDashboard() {
 
   const activeTenders = applyFilters(tenders.filter((t) => t.status !== 'closed'));
 
+  useEffect(() => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+  }, [activeTenders.length]);
+
   const getAcceptedCount = (tender: Tender) => {
     return tender.invites.filter((inv) => inv.status === 'accepted').length;
   };
@@ -87,6 +95,41 @@ export default function OrganizerDashboard() {
             </View>
           </View>
         </View>
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.summaryCardsContainer}
+          contentContainerStyle={styles.summaryCardsContent}
+        >
+          <View style={styles.summaryCard}>
+            <View style={styles.summaryCardIcon}>
+              <Briefcase size={24} color="#4F46E5" />
+            </View>
+            <Text style={styles.summaryCardValue}>{tenders.length}</Text>
+            <Text style={styles.summaryCardLabel}>סהכ מכרזים</Text>
+          </View>
+
+          <View style={styles.summaryCard}>
+            <View style={styles.summaryCardIcon}>
+              <Users size={24} color="#059669" />
+            </View>
+            <Text style={styles.summaryCardValue}>
+              {tenders.reduce((sum, t) => sum + t.invites.filter(i => i.status === 'accepted').length, 0)}
+            </Text>
+            <Text style={styles.summaryCardLabel}>עובדים פעילים</Text>
+          </View>
+
+          <View style={styles.summaryCard}>
+            <View style={styles.summaryCardIcon}>
+              <TrendingUp size={24} color="#F59E0B" />
+            </View>
+            <Text style={styles.summaryCardValue}>
+              ₪{tenders.reduce((sum, t) => sum + t.pay * t.invites.filter(i => i.status === 'accepted').length, 0).toLocaleString()}
+            </Text>
+            <Text style={styles.summaryCardLabel}>סהכ הוצאות</Text>
+          </View>
+        </ScrollView>
 
         <TouchableOpacity
           style={styles.createButton}
@@ -122,6 +165,7 @@ export default function OrganizerDashboard() {
                   key={tender.id}
                   style={styles.tenderCard}
                   onPress={() => router.push(`/organizer/tender-details?id=${tender.id}` as any)}
+                  activeOpacity={0.7}
                 >
                   <View style={styles.tenderHeader}>
                     <View
@@ -140,19 +184,21 @@ export default function OrganizerDashboard() {
                   </View>
 
                   <View style={styles.tenderDetails}>
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailText}>{formatDate(tender.date)}</Text>
-                      <Calendar size={16} color="#6B7280" />
+                    <View style={styles.payRow}>
+                      <Text style={styles.payAmount}>₪{tender.pay}</Text>
                     </View>
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailText}>
-                        {tender.startTime} - {tender.endTime}
-                      </Text>
-                      <Clock size={16} color="#6B7280" />
-                    </View>
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailText}>₪{tender.pay}</Text>
-                      <DollarSign size={16} color="#6B7280" />
+                    
+                    <View style={styles.dateTimeSection}>
+                      <View style={styles.dateRow}>
+                        <Text style={styles.dateText}>{formatDate(tender.date)}</Text>
+                        <Calendar size={18} color="#4F46E5" />
+                      </View>
+                      <View style={styles.timeRow}>
+                        <Text style={styles.timeText}>
+                          {tender.startTime} - {tender.endTime}
+                        </Text>
+                        <Clock size={16} color="#6B7280" />
+                      </View>
                     </View>
                   </View>
 
@@ -321,6 +367,43 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#6B7280',
   },
+  summaryCardsContainer: {
+    marginBottom: 24,
+  },
+  summaryCardsContent: {
+    paddingRight: 4,
+    gap: 12,
+  },
+  summaryCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
+    width: 160,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  summaryCardIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: '#F9FAFB',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  summaryCardValue: {
+    fontSize: 24,
+    fontWeight: '700' as const,
+    color: '#111827',
+    marginBottom: 4,
+  },
+  summaryCardLabel: {
+    fontSize: 14,
+    color: '#6B7280',
+  },
   createButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -418,15 +501,38 @@ const styles = StyleSheet.create({
     fontWeight: '600' as const,
   },
   tenderDetails: {
-    gap: 8,
     marginBottom: 16,
   },
-  detailRow: {
+  payRow: {
+    marginBottom: 12,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+  },
+  payAmount: {
+    fontSize: 28,
+    fontWeight: '700' as const,
+    color: '#047857',
+  },
+  dateTimeSection: {
+    gap: 8,
+  },
+  dateRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
-  detailText: {
+  dateText: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    color: '#111827',
+  },
+  timeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  timeText: {
     fontSize: 14,
     color: '#6B7280',
   },
