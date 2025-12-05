@@ -9,6 +9,7 @@ export const [AppProvider, useApp] = createContextHook(() => {
   const [tenders, setTenders] = useState<Tender[]>([]);
   const [contacts] = useState<Contact[]>(MOCK_CONTACTS);
   const [groups] = useState<Group[]>(MOCK_GROUPS);
+  const [isInitialized, setIsInitialized] = useState(false);
 
 
   useEffect(() => {
@@ -17,12 +18,16 @@ export const [AppProvider, useApp] = createContextHook(() => {
 
   const loadData = async () => {
     try {
+      console.log('[AppContext] Loading data...');
       const storedUserId = await AsyncStorage.getItem('currentUserId');
       if (storedUserId) {
         const user = MOCK_USERS.find((u) => u.id === storedUserId);
         if (user) {
+          console.log('[AppContext] Found user:', user.id);
           setCurrentUser(user);
         }
+      } else {
+        console.log('[AppContext] No stored user found');
       }
 
       const storedTenders = await AsyncStorage.getItem('tenders');
@@ -43,8 +48,11 @@ export const [AppProvider, useApp] = createContextHook(() => {
         await AsyncStorage.setItem('tenders', JSON.stringify(MOCK_TENDERS));
       }
     } catch (error) {
-      console.error('Failed to load data:', error);
+      console.error('[AppContext] Failed to load data:', error);
       setTenders(MOCK_TENDERS);
+    } finally {
+      setIsInitialized(true);
+      console.log('[AppContext] Initialization complete');
     }
   };
 
@@ -124,6 +132,7 @@ export const [AppProvider, useApp] = createContextHook(() => {
     updateInviteStatus,
     getTenderById,
     mockUsers: MOCK_USERS,
+    isInitialized,
   };
 });
 

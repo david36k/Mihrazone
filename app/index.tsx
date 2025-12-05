@@ -5,19 +5,20 @@ import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-na
 import { User, Users } from 'lucide-react-native';
 
 export default function Index() {
-  const { currentUser, switchUser, mockUsers } = useApp();
+  const { currentUser, switchUser, mockUsers, isInitialized } = useApp();
 
   useEffect(() => {
-    if (currentUser) {
+    console.log('[Index] isInitialized:', isInitialized, 'currentUser:', currentUser?.id);
+    if (isInitialized && currentUser) {
       if (currentUser.role === 'organizer') {
         router.replace('/(organizer)/dashboard' as any);
       } else {
         router.replace('/participant/home' as any);
       }
     }
-  }, [currentUser]);
+  }, [currentUser, isInitialized]);
 
-  if (currentUser) {
+  if (!isInitialized || currentUser) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
