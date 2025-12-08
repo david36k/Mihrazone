@@ -2,7 +2,7 @@ import { useOrganizerTenders, useApp } from '@/contexts/AppContext';
 import { router } from 'expo-router';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Animated, Dimensions, LayoutAnimation, UIManager, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Plus, Calendar, Clock, Users, ChevronLeft, Filter, X, Briefcase, TrendingUp } from 'lucide-react-native';
+import { Plus, Calendar, Clock, Users, ChevronLeft, Filter, X } from 'lucide-react-native';
 import { Tender, TenderStatus } from '@/types';
 import { useState, useRef, useEffect } from 'react';
 import { formatDate, getStatusColor, getStatusText } from '@/utils/formatting';
@@ -97,40 +97,7 @@ export default function OrganizerDashboard() {
           </View>
         </View>
 
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.summaryCardsContainer}
-          contentContainerStyle={styles.summaryCardsContent}
-        >
-          <View style={styles.summaryCard}>
-            <View style={styles.summaryCardIcon}>
-              <Briefcase size={24} color="#4F46E5" />
-            </View>
-            <Text style={styles.summaryCardValue}>{tenders.length}</Text>
-            <Text style={styles.summaryCardLabel}>סהכ מכרזים</Text>
-          </View>
 
-          <View style={styles.summaryCard}>
-            <View style={styles.summaryCardIcon}>
-              <Users size={24} color="#059669" />
-            </View>
-            <Text style={styles.summaryCardValue}>
-              {tenders.reduce((sum, t) => sum + t.invites.filter(i => i.status === 'accepted').length, 0)}
-            </Text>
-            <Text style={styles.summaryCardLabel}>עובדים פעילים</Text>
-          </View>
-
-          <View style={styles.summaryCard}>
-            <View style={styles.summaryCardIcon}>
-              <TrendingUp size={24} color="#F59E0B" />
-            </View>
-            <Text style={styles.summaryCardValue}>
-              ₪{tenders.reduce((sum, t) => sum + t.pay * t.invites.filter(i => i.status === 'accepted').length, 0).toLocaleString()}
-            </Text>
-            <Text style={styles.summaryCardLabel}>סהכ הוצאות</Text>
-          </View>
-        </ScrollView>
 
         <TouchableOpacity
           style={styles.createButton}
@@ -141,7 +108,43 @@ export default function OrganizerDashboard() {
         </TouchableOpacity>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>מכרזים פעילים ({activeTenders.length})</Text>
+          <View style={styles.sectionHeader}>
+            <View style={styles.statusButtons}>
+              <TouchableOpacity
+                style={[
+                  styles.statusButton,
+                  selectedStatus === 'open' && styles.statusButtonActive,
+                ]}
+                onPress={() => setSelectedStatus(selectedStatus === 'open' ? 'all' : 'open')}
+              >
+                <Text
+                  style={[
+                    styles.statusButtonText,
+                    selectedStatus === 'open' && styles.statusButtonTextActive,
+                  ]}
+                >
+                  פתוח
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.statusButton,
+                  selectedStatus === 'closed' && styles.statusButtonActive,
+                ]}
+                onPress={() => setSelectedStatus(selectedStatus === 'closed' ? 'all' : 'closed')}
+              >
+                <Text
+                  style={[
+                    styles.statusButtonText,
+                    selectedStatus === 'closed' && styles.statusButtonTextActive,
+                  ]}
+                >
+                  סגור
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.sectionTitle}>מכרזים פעילים ({activeTenders.length})</Text>
+          </View>
 
           {activeTenders.length === 0 ? (
             <View style={styles.emptyState}>
@@ -368,44 +371,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#6B7280',
   },
-  summaryCardsContainer: {
-    marginBottom: 24,
-  },
-  summaryCardsContent: {
-    paddingRight: 4,
-    gap: 12,
-  },
-  summaryCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    flex: 1,
-    minWidth: (SCREEN_WIDTH - 64) / 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  summaryCardIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
-    backgroundColor: '#F9FAFB',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-  },
-  summaryCardValue: {
-    fontSize: 20,
-    fontWeight: '700' as const,
-    color: '#111827',
-    marginBottom: 2,
-  },
-  summaryCardLabel: {
-    fontSize: 12,
-    color: '#6B7280',
-  },
+
   createButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -430,11 +396,40 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: 24,
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
   sectionTitle: {
     fontSize: 20,
     fontWeight: '600' as const,
     color: '#111827',
-    marginBottom: 16,
+  },
+  statusButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  statusButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: '#F3F4F6',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  statusButtonActive: {
+    backgroundColor: '#4F46E5',
+    borderColor: '#4F46E5',
+  },
+  statusButtonText: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: '#6B7280',
+  },
+  statusButtonTextActive: {
+    color: '#FFFFFF',
   },
   emptyState: {
     alignItems: 'center',
