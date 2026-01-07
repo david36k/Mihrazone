@@ -16,6 +16,7 @@ function RootLayoutNav() {
   return (
     <Stack screenOptions={{ headerBackTitle: "חזרה" }}>
       <Stack.Screen name="index" options={{ headerShown: false }} />
+      <Stack.Screen name="(main)" options={{ headerShown: false }} />
       <Stack.Screen name="(organizer)" options={{ headerShown: false }} />
       <Stack.Screen name="organizer/create-tender" options={{ title: "צור מכרז" }} />
       <Stack.Screen name="organizer/tender-details" options={{ title: "פרטי מכרז" }} />

@@ -10,11 +10,7 @@ export default function Index() {
   useEffect(() => {
     console.log('[Index] isInitialized:', isInitialized, 'currentUser:', currentUser?.id);
     if (isInitialized && currentUser) {
-      if (currentUser.role === 'organizer') {
-        router.replace('/(organizer)/dashboard' as any);
-      } else {
-        router.replace('/participant/home' as any);
-      }
+      router.replace('/(main)/dashboard' as any);
     }
   }, [currentUser, isInitialized]);
 
