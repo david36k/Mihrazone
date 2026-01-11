@@ -20,6 +20,7 @@ import * as Haptics from 'expo-haptics';
 import { toast } from 'sonner-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
+import { MotiView } from 'moti';
 
 export default function CreateTender() {
   const { currentUser, createTender, contacts, groups, deductCredit } = useApp();
@@ -69,6 +70,7 @@ export default function CreateTender() {
     }
 
     setIsCreating(true);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
     const contactsFromGroups = groups
       .filter((g) => selectedGroups.includes(g.id))
@@ -162,40 +164,47 @@ export default function CreateTender() {
     <>
       <View style={styles.container}>
         <LinearGradient
-          colors={['#EEF2FF', '#FFFFFF', '#F9FAFB']}
-          locations={[0, 0.5, 1]}
+          colors={['#EEF2FF', '#F8FAFC', '#FFFFFF']}
+          locations={[0, 0.3, 1]}
           style={StyleSheet.absoluteFill}
         />
         <SafeAreaView style={styles.safeArea}>
           {hasNoCredits && (
-            <View style={styles.noCreditsWarning}>
-              <LinearGradient
-                colors={['#EF4444', '#DC2626']}
-                style={styles.warningGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              >
-                <AlertCircle size={24} color="#FFFFFF" />
-                <View style={styles.warningContent}>
-                  <Text style={styles.warningTitle}>אין קרדיטים</Text>
-                  <Text style={styles.warningSubtitle}>הוסף קרדיטים כדי ליצור מכרז</Text>
-                </View>
-              </LinearGradient>
-            </View>
+            <MotiView
+              from={{ opacity: 0, translateY: -20 }}
+              animate={{ opacity: 1, translateY: 0 }}
+              transition={{ type: 'timing', duration: 400 }}
+            >
+              <BlurView intensity={80} tint="light" style={styles.noCreditsWarning}>
+                <LinearGradient
+                  colors={['#EF4444', '#DC2626']}
+                  style={styles.warningGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                >
+                  <AlertCircle size={24} color="#FFFFFF" />
+                  <View style={styles.warningContent}>
+                    <Text style={styles.warningTitle}>אין קרדיטים</Text>
+                    <Text style={styles.warningSubtitle}>לחץ על הקרדיטים למעלה להוסיף</Text>
+                  </View>
+                </LinearGradient>
+              </BlurView>
+            </MotiView>
           )}
 
           <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           <View style={styles.field}>
             <Text style={styles.label}>כותרת *</Text>
-            <View style={styles.inputWrapper}>
+            <BlurView intensity={60} tint="light" style={styles.inputBlur}>
               <TextInput
                 style={styles.input}
                 placeholder="לדוגמה: אירוע חתונה - מלצרים דרושים"
                 value={title}
                 onChangeText={setTitle}
                 placeholderTextColor="#9CA3AF"
+                onFocus={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
               />
-            </View>
+            </BlurView>
           </View>
 
           <View style={styles.field}>
@@ -210,16 +219,18 @@ export default function CreateTender() {
                 setShowDatePicker(true);
               }}
             >
-              <Calendar size={20} color="#4F46E5" />
-              <Text style={styles.inputButtonText}>
-                {date.toLocaleDateString('he-IL', {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
-              </Text>
-              <ChevronDown size={20} color="#9CA3AF" />
+              <BlurView intensity={60} tint="light" style={styles.inputButtonBlur}>
+                <Calendar size={20} color="#4F46E5" />
+                <Text style={styles.inputButtonText}>
+                  {date.toLocaleDateString('he-IL', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  })}
+                </Text>
+                <ChevronDown size={20} color="#9CA3AF" />
+              </BlurView>
             </Pressable>
           </View>
 
@@ -241,7 +252,7 @@ export default function CreateTender() {
           <View style={styles.row}>
             <View style={[styles.field, styles.flex1]}>
               <Text style={styles.label}>שעת התחלה *</Text>
-              <View style={styles.inputButton}>
+              <BlurView intensity={60} tint="light" style={styles.inputButton}>
                 <Clock size={20} color="#4F46E5" />
                 <TextInput
                   style={styles.timeInput}
@@ -249,13 +260,14 @@ export default function CreateTender() {
                   value={startTime}
                   onChangeText={setStartTime}
                   placeholderTextColor="#9CA3AF"
+                  onFocus={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
                 />
-              </View>
+              </BlurView>
             </View>
 
             <View style={[styles.field, styles.flex1]}>
               <Text style={styles.label}>שעת סיום *</Text>
-              <View style={styles.inputButton}>
+              <BlurView intensity={60} tint="light" style={styles.inputButton}>
                 <Clock size={20} color="#4F46E5" />
                 <TextInput
                   style={styles.timeInput}
@@ -263,15 +275,16 @@ export default function CreateTender() {
                   value={endTime}
                   onChangeText={setEndTime}
                   placeholderTextColor="#9CA3AF"
+                  onFocus={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
                 />
-              </View>
+              </BlurView>
             </View>
           </View>
 
           <View style={styles.row}>
             <View style={[styles.field, styles.flex1]}>
               <Text style={styles.label}>תשלום (₪) *</Text>
-              <View style={styles.inputButton}>
+              <BlurView intensity={60} tint="light" style={styles.inputButton}>
                 <DollarSign size={20} color="#059669" />
                 <TextInput
                   style={styles.timeInput}
@@ -280,13 +293,14 @@ export default function CreateTender() {
                   onChangeText={setPay}
                   keyboardType="numeric"
                   placeholderTextColor="#9CA3AF"
+                  onFocus={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
                 />
-              </View>
+              </BlurView>
             </View>
 
             <View style={[styles.field, styles.flex1]}>
               <Text style={styles.label}>מכסה *</Text>
-              <View style={styles.inputButton}>
+              <BlurView intensity={60} tint="light" style={styles.inputButton}>
                 <Users size={20} color="#4F46E5" />
                 <TextInput
                   style={styles.timeInput}
@@ -295,14 +309,15 @@ export default function CreateTender() {
                   onChangeText={setQuota}
                   keyboardType="numeric"
                   placeholderTextColor="#9CA3AF"
+                  onFocus={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
                 />
-              </View>
+              </BlurView>
             </View>
           </View>
 
           <View style={styles.field}>
             <Text style={styles.label}>תיאור (אופציונלי)</Text>
-            <View style={styles.inputWrapper}>
+            <BlurView intensity={60} tint="light" style={styles.inputBlur}>
               <TextInput
                 style={[styles.input, styles.textArea]}
                 placeholder="הוסף פרטים על העבודה..."
@@ -311,21 +326,23 @@ export default function CreateTender() {
                 multiline
                 numberOfLines={4}
                 placeholderTextColor="#9CA3AF"
+                onFocus={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
               />
-            </View>
+            </BlurView>
           </View>
 
           <View style={styles.field}>
             <Text style={styles.label}>מיקום (אופציונלי)</Text>
-            <View style={styles.inputWrapper}>
+            <BlurView intensity={60} tint="light" style={styles.inputBlur}>
               <TextInput
                 style={styles.input}
                 placeholder="למשל: אולם אירועים גני התערוכה, תל אביב"
                 value={location}
                 onChangeText={setLocation}
                 placeholderTextColor="#9CA3AF"
+                onFocus={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
               />
-            </View>
+            </BlurView>
           </View>
 
           <View style={styles.field}>
@@ -340,12 +357,14 @@ export default function CreateTender() {
                 setShowRecipientSelector(true);
               }}
             >
-              <Users size={20} color="#4F46E5" />
-              <Text style={styles.recipientButtonText}>
-                {selectedContacts.length + selectedGroups.length === 0
-                  ? 'בחר נמענים'
-                  : `${selectedContacts.length} אנשי קשר, ${selectedGroups.length} קבוצות`}
-              </Text>
+              <BlurView intensity={80} tint="light" style={styles.recipientButtonBlur}>
+                <Users size={20} color="#4F46E5" />
+                <Text style={styles.recipientButtonText}>
+                  {selectedContacts.length + selectedGroups.length === 0
+                    ? 'בחר נמענים'
+                    : `${selectedContacts.length} אנשי קשר, ${selectedGroups.length} קבוצות`}
+                </Text>
+              </BlurView>
             </Pressable>
           </View>
 
@@ -383,121 +402,149 @@ export default function CreateTender() {
         presentationStyle="pageSheet"
         onRequestClose={() => setShowRecipientSelector(false)}
       >
-        <SafeAreaView style={styles.modalContainer}>
-          <BlurView intensity={90} tint="light" style={styles.modalHeader}>
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={() => setShowRecipientSelector(false)}
-            >
-              <X size={24} color="#111827" />
-            </TouchableOpacity>
-            <Text style={styles.modalTitle}>בחר נמענים</Text>
-            <View style={{ width: 40 }} />
-          </BlurView>
-
-          <View style={styles.searchContainer}>
-            <Search size={20} color="#6B7280" />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="חפש אנשי קשר או קבוצות..."
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              placeholderTextColor="#9CA3AF"
-            />
-          </View>
-
-          <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
-            {filteredGroups.length > 0 && (
-              <View style={styles.recipientSection}>
-                <Text style={styles.recipientSectionTitle}>קבוצות</Text>
-                {filteredGroups.map((group) => (
-                  <Pressable
-                    key={group.id}
-                    style={({ pressed }) => [
-                      styles.recipientItem,
-                      pressed && styles.recipientItemPressed,
-                    ]}
-                    onPress={() => toggleGroup(group.id)}
-                  >
-                    <View style={styles.recipientInfo}>
-                      <Text style={styles.recipientName}>{group.name}</Text>
-                      <Text style={styles.recipientDetail}>
-                        {group.contactIds.length} חברים
-                      </Text>
-                    </View>
-                    <View
-                      style={[
-                        styles.checkbox,
-                        selectedGroups.includes(group.id) && styles.checkboxSelected,
-                      ]}
-                    >
-                      {selectedGroups.includes(group.id) && (
-                        <Check size={16} color="#FFFFFF" />
-                      )}
-                    </View>
-                  </Pressable>
-                ))}
-              </View>
-            )}
-
-            {filteredContacts.length > 0 && (
-              <View style={styles.recipientSection}>
-                <Text style={styles.recipientSectionTitle}>אנשי קשר</Text>
-                {filteredContacts.map((contact) => (
-                  <Pressable
-                    key={contact.id}
-                    style={({ pressed }) => [
-                      styles.recipientItem,
-                      pressed && styles.recipientItemPressed,
-                    ]}
-                    onPress={() => toggleContact(contact.id)}
-                  >
-                    <View style={styles.recipientInfo}>
-                      <Text style={styles.recipientName}>{contact.name}</Text>
-                      <Text style={styles.recipientDetail}>{contact.phone}</Text>
-                    </View>
-                    <View
-                      style={[
-                        styles.checkbox,
-                        selectedContacts.includes(contact.id) && styles.checkboxSelected,
-                      ]}
-                    >
-                      {selectedContacts.includes(contact.id) && (
-                        <Check size={16} color="#FFFFFF" />
-                      )}
-                    </View>
-                  </Pressable>
-                ))}
-              </View>
-            )}
-
-            {filteredGroups.length === 0 && filteredContacts.length === 0 && (
-              <View style={styles.emptySearch}>
-                <Users size={48} color="#D1D5DB" />
-                <Text style={styles.emptySearchText}>לא נמצאו תוצאות</Text>
-              </View>
-            )}
-          </ScrollView>
-
-          <BlurView intensity={90} tint="light" style={styles.modalFooter}>
-            <TouchableOpacity
-              style={styles.doneButton}
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                setShowRecipientSelector(false);
-              }}
-            >
-              <LinearGradient
-                colors={['#6366F1', '#4F46E5']}
-                style={styles.doneButtonGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
+        <View style={styles.modalContainer}>
+          <LinearGradient
+            colors={['#EEF2FF', '#F8FAFC', '#FFFFFF']}
+            locations={[0, 0.3, 1]}
+            style={StyleSheet.absoluteFill}
+          />
+          <SafeAreaView style={styles.modalSafeArea}>
+            <BlurView intensity={90} tint="light" style={styles.modalHeader}>
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  setShowRecipientSelector(false);
+                }}
               >
-                <Text style={styles.doneButtonText}>סיים ({selectedContacts.length + selectedGroups.length})</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-          </BlurView>
-        </SafeAreaView>
+                <X size={24} color="#111827" />
+              </TouchableOpacity>
+              <Text style={styles.modalTitle}>בחר נמענים</Text>
+              <View style={{ width: 40 }} />
+            </BlurView>
+
+            <View style={styles.searchContainer}>
+              <BlurView intensity={60} tint="light" style={styles.searchBlur}>
+                <Search size={20} color="#6B7280" />
+                <TextInput
+                  style={styles.searchInput}
+                  placeholder="חפש אנשי קשר או קבוצות..."
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                  placeholderTextColor="#9CA3AF"
+                />
+              </BlurView>
+            </View>
+
+            <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
+              {filteredGroups.length > 0 && (
+                <View style={styles.recipientSection}>
+                  <Text style={styles.recipientSectionTitle}>קבוצות</Text>
+                  {filteredGroups.map((group, index) => (
+                    <MotiView
+                      key={group.id}
+                      from={{ opacity: 0, translateX: -20 }}
+                      animate={{ opacity: 1, translateX: 0 }}
+                      transition={{ type: 'timing', duration: 300, delay: index * 50 }}
+                    >
+                      <Pressable
+                        style={({ pressed }) => [
+                          styles.recipientItem,
+                          pressed && styles.recipientItemPressed,
+                        ]}
+                        onPress={() => toggleGroup(group.id)}
+                      >
+                        <BlurView intensity={60} tint="light" style={styles.recipientItemBlur}>
+                          <View style={styles.recipientInfo}>
+                            <Text style={styles.recipientName}>{group.name}</Text>
+                            <Text style={styles.recipientDetail}>
+                              {group.contactIds.length} חברים
+                            </Text>
+                          </View>
+                          <View
+                            style={[
+                              styles.checkbox,
+                              selectedGroups.includes(group.id) && styles.checkboxSelected,
+                            ]}
+                          >
+                            {selectedGroups.includes(group.id) && (
+                              <Check size={16} color="#FFFFFF" />
+                            )}
+                          </View>
+                        </BlurView>
+                      </Pressable>
+                    </MotiView>
+                  ))}
+                </View>
+              )}
+
+              {filteredContacts.length > 0 && (
+                <View style={styles.recipientSection}>
+                  <Text style={styles.recipientSectionTitle}>אנשי קשר</Text>
+                  {filteredContacts.map((contact, index) => (
+                    <MotiView
+                      key={contact.id}
+                      from={{ opacity: 0, translateX: -20 }}
+                      animate={{ opacity: 1, translateX: 0 }}
+                      transition={{ type: 'timing', duration: 300, delay: index * 50 }}
+                    >
+                      <Pressable
+                        style={({ pressed }) => [
+                          styles.recipientItem,
+                          pressed && styles.recipientItemPressed,
+                        ]}
+                        onPress={() => toggleContact(contact.id)}
+                      >
+                        <BlurView intensity={60} tint="light" style={styles.recipientItemBlur}>
+                          <View style={styles.recipientInfo}>
+                            <Text style={styles.recipientName}>{contact.name}</Text>
+                            <Text style={styles.recipientDetail}>{contact.phone}</Text>
+                          </View>
+                          <View
+                            style={[
+                              styles.checkbox,
+                              selectedContacts.includes(contact.id) && styles.checkboxSelected,
+                            ]}
+                          >
+                            {selectedContacts.includes(contact.id) && (
+                              <Check size={16} color="#FFFFFF" />
+                            )}
+                          </View>
+                        </BlurView>
+                      </Pressable>
+                    </MotiView>
+                  ))}
+                </View>
+              )}
+
+              {filteredGroups.length === 0 && filteredContacts.length === 0 && (
+                <View style={styles.emptySearch}>
+                  <Users size={48} color="#D1D5DB" />
+                  <Text style={styles.emptySearchText}>לא נמצאו תוצאות</Text>
+                </View>
+              )}
+            </ScrollView>
+
+            <BlurView intensity={90} tint="light" style={styles.modalFooter}>
+              <TouchableOpacity
+                style={styles.doneButton}
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                  setShowRecipientSelector(false);
+                }}
+              >
+                <LinearGradient
+                  colors={['#6366F1', '#4F46E5']}
+                  style={styles.doneButtonGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                >
+                  <Text style={styles.doneButtonText}>סיים ({selectedContacts.length + selectedGroups.length})</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </BlurView>
+          </SafeAreaView>
+        </View>
       </Modal>
     </>
   );
@@ -558,16 +605,16 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     textAlign: 'right',
   },
-  inputWrapper: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+  inputBlur: {
     borderRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 3,
+    overflow: 'hidden',
+    shadowColor: '#4F46E5',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
     borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.05)',
+    borderColor: 'rgba(255, 255, 255, 0.6)',
   },
   input: {
     padding: 16,
@@ -582,17 +629,22 @@ const styles = StyleSheet.create({
   inputButton: {
     flexDirection: 'row-reverse',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
     borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#4F46E5',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.6)',
+  },
+  inputButtonBlur: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
     padding: 16,
     gap: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 3,
-    borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.05)',
+    width: '100%',
   },
   inputButtonPressed: {
     opacity: 0.9,
@@ -619,23 +671,25 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   recipientButton: {
-    flexDirection: 'row-reverse',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderWidth: 2,
-    borderColor: '#4F46E5',
     borderRadius: 16,
-    padding: 16,
-    gap: 12,
+    overflow: 'hidden',
     shadowColor: '#4F46E5',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowRadius: 12,
+    elevation: 6,
+    borderWidth: 2,
+    borderColor: 'rgba(79, 70, 229, 0.3)',
   },
   recipientButtonPressed: {
     opacity: 0.9,
     transform: [{ scale: 0.98 }],
+  },
+  recipientButtonBlur: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    padding: 16,
+    gap: 12,
   },
   recipientButtonText: {
     fontSize: 16,
@@ -674,7 +728,9 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+  },
+  modalSafeArea: {
+    flex: 1,
   },
   modalHeader: {
     flexDirection: 'row-reverse' as const,
@@ -698,19 +754,23 @@ const styles = StyleSheet.create({
     color: '#111827',
   },
   searchContainer: {
+    padding: 16,
+  },
+  searchBlur: {
     flexDirection: 'row-reverse' as const,
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    margin: 16,
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 16,
     gap: 12,
+    overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
     elevation: 3,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.6)',
   },
   searchInput: {
     flex: 1,
@@ -733,23 +793,25 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
   recipientItem: {
+    marginBottom: 8,
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  recipientItemPressed: {
+    opacity: 0.9,
+    transform: [{ scale: 0.98 }],
+  },
+  recipientItemBlur: {
     flexDirection: 'row-reverse',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: 16,
     paddingHorizontal: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderRadius: 16,
-    marginBottom: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  recipientItemPressed: {
-    opacity: 0.9,
-    transform: [{ scale: 0.98 }],
   },
   recipientInfo: {
     flex: 1,

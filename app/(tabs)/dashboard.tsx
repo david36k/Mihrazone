@@ -17,6 +17,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
+import { MotiView } from 'moti';
 import { 
   Briefcase, 
   Users, 
@@ -113,11 +114,11 @@ export default function UnifiedDashboard() {
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={mode === 'work' ? ['#D1FAE5', '#FFFFFF', '#F0FDF4'] : ['#EEF2FF', '#FFFFFF', '#F9FAFB']}
-        locations={[0, 0.5, 1]}
+        colors={mode === 'work' ? ['#ECFDF5', '#F0FDF4', '#FFFFFF'] : ['#EEF2FF', '#F8FAFC', '#FFFFFF']}
+        locations={[0, 0.3, 1]}
         style={StyleSheet.absoluteFill}
       />
-      <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
         <BlurView intensity={90} tint="light" style={styles.header}>
           <View style={styles.headerContent}>
             <View style={[styles.avatarPlaceholder, { shadowColor: mode === 'work' ? '#10B981' : '#4F46E5' }]}>
@@ -225,7 +226,7 @@ export default function UnifiedDashboard() {
 
         <ScrollView
           style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[styles.scrollContent, { paddingBottom: 100 }]}
           showsVerticalScrollIndicator={false}
         >
           {mode === 'work' ? (
@@ -265,13 +266,13 @@ function WorkView({
 
     switch (invite.status) {
       case 'pending':
-        return { text: 'ממתין', color: '#F59E0B', bg: '#FEF3C7' };
+        return { text: 'ממתין', color: '#F59E0B', bg: 'rgba(251, 191, 36, 0.15)' };
       case 'accepted':
-        return { text: 'אושר', color: '#059669', bg: '#D1FAE5' };
+        return { text: 'אושר', color: '#059669', bg: 'rgba(16, 185, 129, 0.15)' };
       case 'rejected':
-        return { text: 'נדחה', color: '#DC2626', bg: '#FEE2E2' };
+        return { text: 'נדחה', color: '#DC2626', bg: 'rgba(239, 68, 68, 0.15)' };
       default:
-        return { text: invite.status, color: '#6B7280', bg: '#F3F4F6' };
+        return { text: invite.status, color: '#6B7280', bg: 'rgba(156, 163, 175, 0.15)' };
     }
   };
 
@@ -294,13 +295,13 @@ function WorkView({
         </View>
 
         <View style={styles.statCard}>
-          <View style={styles.statCardWhite}>
+          <BlurView intensity={60} tint="light" style={styles.statCardBlur}>
             <View style={[styles.statIconContainer, styles.statIconSecondary]}>
               <CalendarClock size={24} color="#10B981" />
             </View>
             <Text style={styles.statValueSecondary}>{upcomingShifts}</Text>
             <Text style={styles.statLabelSecondary}>משמרות קרובות</Text>
-          </View>
+          </BlurView>
         </View>
       </View>
 
@@ -316,64 +317,70 @@ function WorkView({
             </Text>
           </View>
         ) : (
-          tenders.map((tender) => {
+          tenders.map((tender, index) => {
             const status = getStatusBadge(tender);
             const invite = getInviteForUser(tender);
 
             if (!status || !invite) return null;
 
             return (
-              <Pressable
+              <MotiView
                 key={tender.id}
-                style={({ pressed }) => [
-                  styles.tenderCard,
-                  pressed && styles.tenderCardPressed,
-                ]}
-                onPress={() => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  router.push(`/participant/tender-details?id=${tender.id}` as any);
-                }}
+                from={{ opacity: 0, translateY: 20 }}
+                animate={{ opacity: 1, translateY: 0 }}
+                transition={{ type: 'timing', duration: 400, delay: index * 100 }}
               >
-                <View style={styles.tenderHeader}>
-                  <View
-                    style={[styles.statusBadge, { backgroundColor: status.bg }]}
-                  >
-                    <Text style={[styles.statusText, { color: status.color }]}>
-                      {status.text}
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.tenderCard,
+                    pressed && styles.tenderCardPressed,
+                  ]}
+                  onPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    router.push(`/participant/tender-details?id=${tender.id}` as any);
+                  }}
+                >
+                  <View style={styles.tenderHeader}>
+                    <View
+                      style={[styles.statusBadge, { backgroundColor: status.bg }]}
+                    >
+                      <Text style={[styles.statusText, { color: status.color }]}>
+                        {status.text}
+                      </Text>
+                    </View>
+                    <Text style={styles.tenderTitle}>{tender.title}</Text>
+                  </View>
+
+                  <View style={styles.organizerInfo}>
+                    <Text style={styles.organizerText}>
+                      מאת {tender.organizerName}
                     </Text>
                   </View>
-                  <Text style={styles.tenderTitle}>{tender.title}</Text>
-                </View>
 
-                <View style={styles.organizerInfo}>
-                  <Text style={styles.organizerText}>
-                    מאת {tender.organizerName}
-                  </Text>
-                </View>
+                  <View style={styles.tenderDetails}>
+                    <View style={styles.detailRow}>
+                      <Text style={styles.detailText}>{formatDate(tender.date)}</Text>
+                      <Calendar size={16} color="#6B7280" />
+                    </View>
+                    <View style={styles.detailRow}>
+                      <Text style={styles.detailText}>
+                        {tender.startTime} - {tender.endTime}
+                      </Text>
+                      <Clock size={16} color="#6B7280" />
+                    </View>
+                    <View style={styles.detailRow}>
+                      <Text style={styles.payText}>₪{tender.pay}</Text>
+                      <DollarSign size={16} color="#059669" />
+                    </View>
+                  </View>
 
-                <View style={styles.tenderDetails}>
-                  <View style={styles.detailRow}>
-                    <Text style={styles.detailText}>{formatDate(tender.date)}</Text>
-                    <Calendar size={16} color="#6B7280" />
-                  </View>
-                  <View style={styles.detailRow}>
-                    <Text style={styles.detailText}>
-                      {tender.startTime} - {tender.endTime}
-                    </Text>
-                    <Clock size={16} color="#6B7280" />
-                  </View>
-                  <View style={styles.detailRow}>
-                    <Text style={styles.payText}>₪{tender.pay}</Text>
-                    <DollarSign size={16} color="#059669" />
-                  </View>
-                </View>
-
-                {invite.status === 'pending' && (
-                  <View style={styles.pendingIndicator}>
-                    <Text style={styles.pendingText}>לחץ לתגובה</Text>
-                  </View>
-                )}
-              </Pressable>
+                  {invite.status === 'pending' && (
+                    <View style={styles.pendingIndicator}>
+                      <Text style={styles.pendingText}>לחץ לתגובה</Text>
+                    </View>
+                  )}
+                </Pressable>
+              </MotiView>
             );
           })
         )}
@@ -403,7 +410,7 @@ function HireView({ tenders, hasNoCredits, hasLowCredits }: { tenders: Tender[];
                 {hasNoCredits ? 'אזלו הקרדיטים' : 'קרדיטים נמוכים'}
               </Text>
               <Text style={styles.creditsBannerSubtitle}>
-                {hasNoCredits ? 'הוסף קרדיטים כדי ליצור מכרז' : 'מומלץ להוסיף קרדיטים'}
+                {hasNoCredits ? 'לחץ על הקרדיטים למעלה להוסיף' : 'מומלץ להוסיף קרדיטים'}
               </Text>
             </View>
             <ChevronLeft size={20} color="#FFFFFF" />
@@ -448,79 +455,85 @@ function HireView({ tenders, hasNoCredits, hasLowCredits }: { tenders: Tender[];
             </Text>
           </View>
         ) : (
-          tenders.map((tender) => {
+          tenders.map((tender, index) => {
             const acceptedCount = getAcceptedCount(tender);
             const progress = tender.quota > 0 ? (acceptedCount / tender.quota) * 100 : 0;
 
             return (
-              <Pressable
+              <MotiView
                 key={tender.id}
-                style={({ pressed }) => [
-                  styles.tenderCard,
-                  pressed && styles.tenderCardPressed,
-                ]}
-                onPress={() => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  router.push(`/organizer/tender-details?id=${tender.id}` as any);
-                }}
+                from={{ opacity: 0, translateY: 20 }}
+                animate={{ opacity: 1, translateY: 0 }}
+                transition={{ type: 'timing', duration: 400, delay: index * 100 }}
               >
-                <View style={styles.tenderHeader}>
-                  <View
-                    style={[
-                      styles.statusBadge,
-                      { backgroundColor: `${getStatusColor(tender.status)}20` },
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.statusText,
-                        { color: getStatusColor(tender.status) },
-                      ]}
-                    >
-                      {getStatusText(tender.status)}
-                    </Text>
-                  </View>
-                  <Text style={styles.tenderTitle}>{tender.title}</Text>
-                </View>
-
-                <View style={styles.tenderDetails}>
-                  <View style={styles.detailRow}>
-                    <Text style={styles.detailText}>{formatDate(tender.date)}</Text>
-                    <Calendar size={16} color="#6B7280" />
-                  </View>
-                  <View style={styles.detailRow}>
-                    <Text style={styles.detailText}>
-                      {tender.startTime} - {tender.endTime}
-                    </Text>
-                    <Clock size={16} color="#6B7280" />
-                  </View>
-                </View>
-
-                <View style={styles.progressSection}>
-                  <View style={styles.progressHeader}>
-                    <Text style={styles.progressCount}>
-                      {acceptedCount} / {tender.quota}
-                    </Text>
-                    <Text style={styles.progressLabel}>עובדים</Text>
-                  </View>
-                  <View style={styles.progressBar}>
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.tenderCard,
+                    pressed && styles.tenderCardPressed,
+                  ]}
+                  onPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    router.push(`/organizer/tender-details?id=${tender.id}` as any);
+                  }}
+                >
+                  <View style={styles.tenderHeader}>
                     <View
                       style={[
-                        styles.progressFill,
-                        {
-                          width: `${Math.min(progress, 100)}%`,
-                          backgroundColor:
-                            progress >= 100
-                              ? '#059669'
-                              : progress >= 70
-                              ? '#F59E0B'
-                              : '#4F46E5',
-                        },
+                        styles.statusBadge,
+                        { backgroundColor: `${getStatusColor(tender.status)}20` },
                       ]}
-                    />
+                    >
+                      <Text
+                        style={[
+                          styles.statusText,
+                          { color: getStatusColor(tender.status) },
+                        ]}
+                      >
+                        {getStatusText(tender.status)}
+                      </Text>
+                    </View>
+                    <Text style={styles.tenderTitle}>{tender.title}</Text>
                   </View>
-                </View>
-              </Pressable>
+
+                  <View style={styles.tenderDetails}>
+                    <View style={styles.detailRow}>
+                      <Text style={styles.detailText}>{formatDate(tender.date)}</Text>
+                      <Calendar size={16} color="#6B7280" />
+                    </View>
+                    <View style={styles.detailRow}>
+                      <Text style={styles.detailText}>
+                        {tender.startTime} - {tender.endTime}
+                      </Text>
+                      <Clock size={16} color="#6B7280" />
+                    </View>
+                  </View>
+
+                  <View style={styles.progressSection}>
+                    <View style={styles.progressHeader}>
+                      <Text style={styles.progressCount}>
+                        {acceptedCount} / {tender.quota}
+                      </Text>
+                      <Text style={styles.progressLabel}>עובדים</Text>
+                    </View>
+                    <View style={styles.progressBar}>
+                      <View
+                        style={[
+                          styles.progressFill,
+                          {
+                            width: `${Math.min(progress, 100)}%`,
+                            backgroundColor:
+                              progress >= 100
+                                ? '#059669'
+                                : progress >= 70
+                                ? '#F59E0B'
+                                : '#4F46E5',
+                          },
+                        ]}
+                      />
+                    </View>
+                  </View>
+                </Pressable>
+              </MotiView>
             );
           })
         )}
@@ -661,16 +674,15 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     overflow: 'hidden',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 20,
-    elevation: 10,
+    shadowOpacity: 0.2,
+    shadowRadius: 24,
+    elevation: 12,
   },
   statCardPrimary: {},
   statCardGradient: {
     padding: 20,
   },
-  statCardWhite: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+  statCardBlur: {
     padding: 20,
   },
   statIconContainer: {
@@ -683,7 +695,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   statIconSecondary: {
-    backgroundColor: '#D1FAE5',
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
   },
   statValue: {
     fontSize: 32,
@@ -808,17 +820,17 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   tenderCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
     borderRadius: 24,
     padding: 20,
     marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 20,
-    elevation: 8,
+    shadowColor: '#4F46E5',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.12,
+    shadowRadius: 24,
+    elevation: 10,
     borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.05)',
+    borderColor: 'rgba(255, 255, 255, 0.8)',
   },
   tenderCardPressed: {
     opacity: 0.9,
