@@ -1,33 +1,112 @@
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { useState, useMemo } from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  Pressable,
+  LayoutAnimation,
+  UIManager,
+  Platform,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
-import { Archive, Calendar, Users, DollarSign } from 'lucide-react-native';
-import { useAppContext } from '@/contexts/AppContext';
-import { formatCurrency } from '@/utils/formatting';
-import { formatDateRange } from '@/utils/dateFormatter';
+import { MotiView } from 'moti';
+import * as Haptics from 'expo-haptics';
+import {
+  Archive,
+  Calendar,
+  Users,
+  DollarSign,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  Briefcase,
+  Filter,
+  TrendingUp,
+  Package,
+} from 'lucide-react-native';
+import { useApp } from '@/contexts/AppContext';
+import { formatDate } from '@/utils/formatting';
+import { Tender } from '@/types';
+import { router } from 'expo-router';
+
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
+type FilterMode = 'all' | 'organized' | 'worked';
 
 export default function ArchiveScreen() {
-  const { tenders, user } = useAppContext();
+  const { currentUser, tenders } = useApp();
+  const [filterMode, setFilterMode] = useState<FilterMode>('all');
 
-  const completedTenders = tenders.filter(
-    (tender) =>
-      tender.status === 'closed' &&
-      (tender.organizerId === user?.id ||
-        tender.invites.some((invite) => invite.userId === user?.id))
-  );
+  const completedTenders = useMemo(() => {
+    if (!currentUser) return [];
+
+    const now = new Date();
+
+    return tenders.filter((tender) => {
+      const isPast = tender.date < now;
+      const isOrganizer = tender.organizerId === currentUser.id;
+      const isParticipant = tender.invites.some((inv) => inv.userId === currentUser.id);
+
+      return isPast && (isOrganizer || isParticipant);
+    });
+  }, [currentUser, tenders]);
+
+  const filteredTenders = useMemo(() => {
+    if (filterMode === 'all') return completedTenders;
+    if (filterMode === 'organized') {
+      return completedTenders.filter((t) => t.organizerId === currentUser?.id);
+    }
+    if (filterMode === 'worked') {
+      return completedTenders.filter((t) =>
+        t.invites.some(
+          (inv) => inv.userId === currentUser?.id && inv.status === 'accepted'
+        )
+      );
+    }
+    return completedTenders;
+  }, [completedTenders, filterMode, currentUser]);
+
+  const stats = useMemo(() => {
+    const organized = completedTenders.filter((t) => t.organizerId === currentUser?.id);
+    const worked = completedTenders.filter((t) =>
+      t.invites.some((inv) => inv.userId === currentUser?.id && inv.status === 'accepted')
+    );
+    const totalEarned = worked.reduce((sum, t) => sum + t.pay, 0);
+
+    return {
+      totalCompleted: completedTenders.length,
+      organized: organized.length,
+      worked: worked.length,
+      totalEarned,
+    };
+  }, [completedTenders, currentUser]);
+
+  const handleFilterChange = (mode: FilterMode) => {
+    if (mode !== filterMode) {
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      setFilterMode(mode);
+    }
+  };
 
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={['#EEF2FF', '#F9FAFB', '#FFFFFF']}
+        colors={['#F3E8FF', '#EDE9FE', '#FFFFFF']}
+        locations={[0, 0.3, 1]}
         style={StyleSheet.absoluteFill}
       />
 
-      <SafeAreaView style={styles.safeArea} edges={['top']}>
-        <BlurView intensity={80} tint="light" style={styles.header}>
+      <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+        <BlurView intensity={90} tint="light" style={styles.header}>
           <View style={styles.headerContent}>
-            <Archive size={28} color="#4F46E5" />
+            <Archive size={32} color="#7C3AED" />
             <Text style={styles.headerTitle}>ארכיון</Text>
           </View>
         </BlurView>
@@ -37,89 +116,309 @@ export default function ArchiveScreen() {
           contentContainerStyle={styles.contentContainer}
           showsVerticalScrollIndicator={false}
         >
-          {completedTenders.length === 0 ? (
-            <View style={styles.emptyState}>
-              <Archive size={64} color="#D1D5DB" />
+          <View style={styles.statsContainer}>
+            <View style={styles.statsRow}>
+              <MotiView
+                from={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ type: 'timing', duration: 400 }}
+                style={styles.statCard}
+              >
+                <BlurView intensity={60} tint="light" style={styles.statCardBlur}>
+                  <View style={[styles.statIcon, { backgroundColor: 'rgba(124, 58, 237, 0.1)' }]}>
+                    <Package size={24} color="#7C3AED" />
+                  </View>
+                  <Text style={styles.statValue}>{stats.totalCompleted}</Text>
+                  <Text style={styles.statLabel}>סה"כ הושלמו</Text>
+                </BlurView>
+              </MotiView>
+
+              <MotiView
+                from={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ type: 'timing', duration: 400, delay: 100 }}
+                style={styles.statCard}
+              >
+                <BlurView intensity={60} tint="light" style={styles.statCardBlur}>
+                  <View style={[styles.statIcon, { backgroundColor: 'rgba(59, 130, 246, 0.1)' }]}>
+                    <Users size={24} color="#3B82F6" />
+                  </View>
+                  <Text style={styles.statValue}>{stats.organized}</Text>
+                  <Text style={styles.statLabel}>ארגנתי</Text>
+                </BlurView>
+              </MotiView>
+            </View>
+
+            <View style={styles.statsRow}>
+              <MotiView
+                from={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ type: 'timing', duration: 400, delay: 200 }}
+                style={styles.statCard}
+              >
+                <BlurView intensity={60} tint="light" style={styles.statCardBlur}>
+                  <View style={[styles.statIcon, { backgroundColor: 'rgba(16, 185, 129, 0.1)' }]}>
+                    <Briefcase size={24} color="#10B981" />
+                  </View>
+                  <Text style={styles.statValue}>{stats.worked}</Text>
+                  <Text style={styles.statLabel}>עבדתי</Text>
+                </BlurView>
+              </MotiView>
+
+              <MotiView
+                from={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ type: 'timing', duration: 400, delay: 300 }}
+                style={styles.statCard}
+              >
+                <LinearGradient
+                  colors={['#10B981', '#059669']}
+                  style={styles.statCardGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                >
+                  <View style={[styles.statIcon, { backgroundColor: 'rgba(255, 255, 255, 0.2)' }]}>
+                    <TrendingUp size={24} color="#FFFFFF" />
+                  </View>
+                  <Text style={styles.statValueWhite}>₪{stats.totalEarned.toLocaleString()}</Text>
+                  <Text style={styles.statLabelWhite}>סה"כ הרווחתי</Text>
+                </LinearGradient>
+              </MotiView>
+            </View>
+          </View>
+
+          <BlurView intensity={80} tint="light" style={styles.filterContainer}>
+            <Pressable
+              style={[
+                styles.filterButton,
+                filterMode === 'all' && styles.filterButtonActive,
+              ]}
+              onPress={() => handleFilterChange('all')}
+            >
+              {filterMode === 'all' && (
+                <LinearGradient
+                  colors={['#7C3AED', '#6D28D9']}
+                  style={styles.filterButtonGradient}
+                />
+              )}
+              <Text
+                style={[
+                  styles.filterButtonText,
+                  filterMode === 'all' && styles.filterButtonTextActive,
+                ]}
+              >
+                הכל ({stats.totalCompleted})
+              </Text>
+            </Pressable>
+
+            <Pressable
+              style={[
+                styles.filterButton,
+                filterMode === 'organized' && styles.filterButtonActive,
+              ]}
+              onPress={() => handleFilterChange('organized')}
+            >
+              {filterMode === 'organized' && (
+                <LinearGradient
+                  colors={['#7C3AED', '#6D28D9']}
+                  style={styles.filterButtonGradient}
+                />
+              )}
+              <Text
+                style={[
+                  styles.filterButtonText,
+                  filterMode === 'organized' && styles.filterButtonTextActive,
+                ]}
+              >
+                ארגנתי ({stats.organized})
+              </Text>
+            </Pressable>
+
+            <Pressable
+              style={[
+                styles.filterButton,
+                filterMode === 'worked' && styles.filterButtonActive,
+              ]}
+              onPress={() => handleFilterChange('worked')}
+            >
+              {filterMode === 'worked' && (
+                <LinearGradient
+                  colors={['#7C3AED', '#6D28D9']}
+                  style={styles.filterButtonGradient}
+                />
+              )}
+              <Text
+                style={[
+                  styles.filterButtonText,
+                  filterMode === 'worked' && styles.filterButtonTextActive,
+                ]}
+              >
+                עבדתי ({stats.worked})
+              </Text>
+            </Pressable>
+          </BlurView>
+
+          {filteredTenders.length === 0 ? (
+            <MotiView
+              from={{ opacity: 0, translateY: 20 }}
+              animate={{ opacity: 1, translateY: 0 }}
+              transition={{ type: 'timing', duration: 500 }}
+              style={styles.emptyState}
+            >
+              <View style={styles.emptyIconContainer}>
+                <LinearGradient
+                  colors={['#F3E8FF', '#EDE9FE']}
+                  style={styles.emptyIconGradient}
+                >
+                  <Archive size={64} color="#A78BFA" />
+                </LinearGradient>
+              </View>
               <Text style={styles.emptyTitle}>אין פריטים בארכיון</Text>
               <Text style={styles.emptySubtitle}>
-                מכרזים והזמנות שהסתיימו יופיעו כאן
+                {filterMode === 'all'
+                  ? 'מכרזים והזמנות שהסתיימו יופיעו כאן'
+                  : filterMode === 'organized'
+                  ? 'מכרזים שארגנת והסתיימו יופיעו כאן'
+                  : 'משמרות שעבדת יופיעו כאן'}
               </Text>
-            </View>
+            </MotiView>
           ) : (
-            <>
+            <View style={styles.tendersSection}>
               <Text style={styles.sectionTitle}>
-                {completedTenders.length} מכרזים שהסתיימו
+                {filteredTenders.length} {filteredTenders.length === 1 ? 'מכרז' : 'מכרזים'}
               </Text>
 
-              {completedTenders.map((tender) => {
-                const isOrganizer = tender.organizerId === user?.id;
+              {filteredTenders.map((tender, index) => {
+                const isOrganizer = tender.organizerId === currentUser?.id;
                 const myInvite = tender.invites.find(
-                  (invite) => invite.userId === user?.id
+                  (invite) => invite.userId === currentUser?.id
                 );
 
                 return (
-                  <TouchableOpacity
+                  <MotiView
                     key={tender.id}
-                    style={styles.tenderCard}
-                    activeOpacity={0.7}
+                    from={{ opacity: 0, translateY: 20 }}
+                    animate={{ opacity: 1, translateY: 0 }}
+                    transition={{ type: 'timing', duration: 400, delay: index * 80 }}
                   >
-                    <View style={styles.cardHeader}>
-                      <Text style={styles.cardTitle}>{tender.title}</Text>
-                      {isOrganizer ? (
-                        <View style={styles.organizerBadge}>
-                          <Text style={styles.badgeText}>מארגן</Text>
+                    <Pressable
+                      style={({ pressed }) => [
+                        styles.tenderCard,
+                        pressed && styles.tenderCardPressed,
+                      ]}
+                      onPress={() => {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        const route = isOrganizer
+                          ? `/organizer/tender-details?id=${tender.id}`
+                          : `/participant/tender-details?id=${tender.id}`;
+                        router.push(route as any);
+                      }}
+                    >
+                      <View style={styles.cardHeader}>
+                        <View style={styles.cardHeaderRight}>
+                          {isOrganizer ? (
+                            <View
+                              style={[
+                                styles.roleBadge,
+                                { backgroundColor: 'rgba(59, 130, 246, 0.15)' },
+                              ]}
+                            >
+                              <Users size={14} color="#3B82F6" />
+                              <Text style={[styles.roleBadgeText, { color: '#3B82F6' }]}>
+                                ארגנתי
+                              </Text>
+                            </View>
+                          ) : (
+                            <View
+                              style={[
+                                styles.roleBadge,
+                                {
+                                  backgroundColor:
+                                    myInvite?.status === 'accepted'
+                                      ? 'rgba(16, 185, 129, 0.15)'
+                                      : 'rgba(239, 68, 68, 0.15)',
+                                },
+                              ]}
+                            >
+                              {myInvite?.status === 'accepted' ? (
+                                <>
+                                  <CheckCircle2 size={14} color="#10B981" />
+                                  <Text style={[styles.roleBadgeText, { color: '#10B981' }]}>
+                                    השתתפתי
+                                  </Text>
+                                </>
+                              ) : (
+                                <>
+                                  <XCircle size={14} color="#EF4444" />
+                                  <Text style={[styles.roleBadgeText, { color: '#EF4444' }]}>
+                                    דחיתי
+                                  </Text>
+                                </>
+                              )}
+                            </View>
+                          )}
                         </View>
-                      ) : (
-                        <View
-                          style={[
-                            styles.statusBadge,
-                            myInvite?.status === 'accepted'
-                              ? styles.acceptedBadge
-                              : styles.declinedBadge,
-                          ]}
-                        >
-                          <Text
-                            style={[
-                              styles.badgeText,
-                              myInvite?.status === 'accepted'
-                                ? styles.acceptedText
-                                : styles.declinedText,
-                            ]}
-                          >
-                            {myInvite?.status === 'accepted' ? 'אישרתי' : 'דחיתי'}
-                          </Text>
-                        </View>
-                      )}
-                    </View>
+                        <Text style={styles.cardTitle}>{tender.title}</Text>
+                      </View>
 
-                    <View style={styles.cardDetails}>
-                      <View style={styles.detailRow}>
-                        <Calendar size={16} color="#6B7280" />
-                        <Text style={styles.detailText}>
-                          {formatDateRange(tender.startDate, tender.endDate)}
-                        </Text>
+                      <View style={styles.cardDetails}>
+                        <View style={styles.detailRow}>
+                          <Text style={styles.detailText}>{formatDate(tender.date)}</Text>
+                          <Calendar size={16} color="#9CA3AF" />
+                        </View>
+
+                        <View style={styles.detailRow}>
+                          <Text style={styles.detailText}>
+                            {tender.startTime} - {tender.endTime}
+                          </Text>
+                          <Clock size={16} color="#9CA3AF" />
+                        </View>
+
+                        {isOrganizer ? (
+                          <View style={styles.detailRow}>
+                            <Text style={styles.detailTextBold}>
+                              {tender.invites.filter((inv) => inv.status === 'accepted').length} /{' '}
+                              {tender.quota} עובדים
+                            </Text>
+                            <Users size={16} color="#7C3AED" />
+                          </View>
+                        ) : (
+                          myInvite?.status === 'accepted' && (
+                            <View style={styles.detailRow}>
+                              <Text style={[styles.detailTextBold, { color: '#10B981' }]}>
+                                ₪{tender.pay.toLocaleString()}
+                              </Text>
+                              <DollarSign size={16} color="#10B981" />
+                            </View>
+                          )
+                        )}
                       </View>
 
                       {isOrganizer && (
-                        <View style={styles.detailRow}>
-                          <Users size={16} color="#6B7280" />
-                          <Text style={styles.detailText}>
-                            {tender.acceptedCount} / {tender.quota} עובדים
-                          </Text>
+                        <View style={styles.progressContainer}>
+                          <View style={styles.progressBar}>
+                            <View
+                              style={[
+                                styles.progressFill,
+                                {
+                                  width: `${Math.min(
+                                    (tender.invites.filter((inv) => inv.status === 'accepted')
+                                      .length /
+                                      tender.quota) *
+                                      100,
+                                    100
+                                  )}%`,
+                                },
+                              ]}
+                            />
+                          </View>
                         </View>
                       )}
-
-                      <View style={styles.detailRow}>
-                        <DollarSign size={16} color="#6B7280" />
-                        <Text style={styles.detailText}>
-                          {formatCurrency(tender.hourlyRate)}/שעה
-                        </Text>
-                      </View>
-                    </View>
-                  </TouchableOpacity>
+                    </Pressable>
+                  </MotiView>
                 );
               })}
-            </>
+            </View>
           )}
         </ScrollView>
       </SafeAreaView>
@@ -135,111 +434,255 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    paddingHorizontal: 24,
-    paddingVertical: 20,
-    borderBottomWidth: 0,
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0, 0, 0, 0.05)',
+    overflow: 'hidden',
   },
   headerContent: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     alignItems: 'center',
     gap: 12,
   },
   headerTitle: {
-    fontSize: 32,
-    fontWeight: '700',
+    fontSize: 28,
+    fontWeight: '700' as const,
     color: '#111827',
   },
   scrollView: {
     flex: 1,
   },
   contentContainer: {
-    padding: 24,
+    padding: 20,
     paddingBottom: 100,
+  },
+  statsContainer: {
+    gap: 12,
+    marginBottom: 20,
+  },
+  statsRow: {
+    flexDirection: 'row-reverse',
+    gap: 12,
+  },
+  statCard: {
+    flex: 1,
+    borderRadius: 20,
+    overflow: 'hidden',
+    shadowColor: '#7C3AED',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  statCardBlur: {
+    padding: 16,
+    alignItems: 'center',
+  },
+  statCardGradient: {
+    padding: 16,
+    alignItems: 'center',
+  },
+  statIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  statValue: {
+    fontSize: 24,
+    fontWeight: '700' as const,
+    color: '#111827',
+    marginBottom: 4,
+  },
+  statLabel: {
+    fontSize: 13,
+    color: '#6B7280',
+    fontWeight: '500' as const,
+  },
+  statValueWhite: {
+    fontSize: 24,
+    fontWeight: '700' as const,
+    color: '#FFFFFF',
+    marginBottom: 4,
+  },
+  statLabelWhite: {
+    fontSize: 13,
+    color: 'rgba(255, 255, 255, 0.9)',
+    fontWeight: '500' as const,
+  },
+  filterContainer: {
+    flexDirection: 'row-reverse',
+    borderRadius: 16,
+    padding: 4,
+    gap: 4,
+    overflow: 'hidden',
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.05)',
+  },
+  filterButton: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  filterButtonActive: {
+    shadowColor: '#7C3AED',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  filterButtonGradient: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    borderRadius: 12,
+  },
+  filterButtonText: {
+    fontSize: 13,
+    fontWeight: '600' as const,
+    color: '#6B7280',
+    zIndex: 1,
+  },
+  filterButtonTextActive: {
+    color: '#FFFFFF',
   },
   emptyState: {
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 80,
   },
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#374151',
-    marginTop: 16,
-  },
-  emptySubtitle: {
-    fontSize: 14,
-    color: '#9CA3AF',
-    marginTop: 8,
-    textAlign: 'center',
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#6B7280',
-    marginBottom: 16,
-  },
-  tenderCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 24,
-    padding: 20,
-    marginBottom: 16,
-    shadowColor: '#4F46E5',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
+  emptyIconContainer: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    overflow: 'hidden',
+    marginBottom: 24,
+    shadowColor: '#7C3AED',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
     shadowRadius: 20,
     elevation: 10,
   },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  emptyIconGradient: {
+    width: '100%',
+    height: '100%',
     alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyTitle: {
+    fontSize: 22,
+    fontWeight: '700' as const,
+    color: '#374151',
+    marginBottom: 8,
+  },
+  emptySubtitle: {
+    fontSize: 15,
+    color: '#9CA3AF',
+    textAlign: 'center',
+    paddingHorizontal: 40,
+    lineHeight: 22,
+  },
+  tendersSection: {
+    gap: 12,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600' as const,
+    color: '#6B7280',
+    marginBottom: 8,
+    textAlign: 'right',
+  },
+  tenderCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: 24,
+    padding: 20,
+    marginBottom: 12,
+    shadowColor: '#7C3AED',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.12,
+    shadowRadius: 20,
+    elevation: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.9)',
+  },
+  tenderCardPressed: {
+    opacity: 0.9,
+    transform: [{ scale: 0.98 }],
+  },
+  cardHeader: {
+    flexDirection: 'row-reverse',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
     marginBottom: 16,
+  },
+  cardHeaderRight: {
+    flexDirection: 'row-reverse',
+    gap: 8,
   },
   cardTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '700' as const,
     color: '#111827',
     flex: 1,
+    textAlign: 'right',
+    marginRight: 12,
   },
-  organizerBadge: {
-    backgroundColor: 'rgba(79, 70, 229, 0.1)',
+  roleBadge: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    gap: 6,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 12,
   },
-  statusBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-  },
-  acceptedBadge: {
-    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-  },
-  declinedBadge: {
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-  },
-  badgeText: {
+  roleBadgeText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#4F46E5',
-  },
-  acceptedText: {
-    color: '#10B981',
-  },
-  declinedText: {
-    color: '#EF4444',
+    fontWeight: '600' as const,
   },
   cardDetails: {
-    gap: 8,
+    gap: 10,
   },
   detailRow: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     alignItems: 'center',
     gap: 8,
   },
   detailText: {
     fontSize: 14,
     color: '#6B7280',
+    fontWeight: '500' as const,
+  },
+  detailTextBold: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: '#111827',
+  },
+  progressContainer: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0, 0, 0, 0.05)',
+  },
+  progressBar: {
+    height: 6,
+    backgroundColor: 'rgba(124, 58, 237, 0.1)',
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#7C3AED',
+    borderRadius: 3,
   },
 });
