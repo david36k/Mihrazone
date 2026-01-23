@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { LayoutDashboard, Settings } from 'lucide-react-native';
+import { LayoutDashboard } from 'lucide-react-native';
 import { BlurView } from 'expo-blur';
 import { StyleSheet } from 'react-native';
 
@@ -41,8 +41,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="settings"
         options={{
-          title: 'הגדרות',
-          tabBarIcon: ({ color, size }) => <Settings size={size} color={color} />,
+          href: null,
         }}
       />
     </Tabs>

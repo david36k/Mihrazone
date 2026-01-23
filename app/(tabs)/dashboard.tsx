@@ -121,7 +121,14 @@ export default function UnifiedDashboard() {
       <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
         <BlurView intensity={90} tint="light" style={styles.header}>
           <View style={styles.headerContent}>
-            <View style={[styles.avatarPlaceholder, { shadowColor: mode === 'work' ? '#10B981' : '#4F46E5' }]}>
+            <TouchableOpacity 
+              style={[styles.avatarPlaceholder, { shadowColor: mode === 'work' ? '#10B981' : '#4F46E5' }]}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                router.push('/(tabs)/settings' as any);
+              }}
+              activeOpacity={0.8}
+            >
               <LinearGradient
                 colors={mode === 'work' ? ['#10B981', '#059669'] : ['#6366F1', '#4F46E5']}
                 style={styles.avatarGradient}
@@ -130,7 +137,7 @@ export default function UnifiedDashboard() {
                   {currentUser?.name?.charAt(0) || 'U'}
                 </Text>
               </LinearGradient>
-            </View>
+            </TouchableOpacity>
             <View style={styles.headerText}>
               <Text style={styles.greeting}>שלום, {currentUser?.name || 'משתמש'}</Text>
               <View style={styles.creditsRow}>
