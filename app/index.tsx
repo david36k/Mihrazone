@@ -60,7 +60,8 @@ export default function Index() {
   }
 
   const handleSendOtp = async () => {
-    if (!phoneNumber || phoneNumber.length < 9) {
+    const cleanPhone = phoneNumber.replace(/\D/g, '');
+    if (!cleanPhone || cleanPhone.length < 9) {
       return;
     }
 
@@ -75,11 +76,11 @@ export default function Index() {
 
   const handleLogin = async () => {
     if (!showOtp) {
-      handleSendOtp();
+      await handleSendOtp();
       return;
     }
 
-    if (otpCode.length < 4) {
+    if (!otpCode || otpCode.length < 4) {
       return;
     }
 
@@ -132,18 +133,17 @@ export default function Index() {
                 <View style={styles.formCardInner}>
                   <Text style={styles.label}>מספר טלפון</Text>
                   <View style={styles.phoneInputContainer}>
-                    <View style={styles.prefixContainer}>
-                      <Text style={styles.prefixText}>+972</Text>
-                    </View>
                     <TextInput
                       style={styles.phoneInput}
-                      placeholder="50-123-4567"
+                      placeholder="050-123-4567"
                       placeholderTextColor="#9CA3AF"
                       keyboardType="phone-pad"
                       value={phoneNumber}
                       onChangeText={setPhoneNumber}
-                      maxLength={10}
+                      maxLength={12}
                       textAlign="right"
+                      selectTextOnFocus={false}
+                      autoFocus={false}
                     />
                   </View>
 
@@ -302,32 +302,19 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
   phoneInputContainer: {
-    flexDirection: 'row-reverse',
-    alignItems: 'center',
     backgroundColor: '#F9FAFB',
     borderRadius: 16,
     paddingHorizontal: 16,
-    paddingVertical: 4,
     borderWidth: 2,
     borderColor: '#E5E7EB',
   },
-  prefixContainer: {
-    paddingRight: 12,
-    borderRightWidth: 1,
-    borderRightColor: '#E5E7EB',
-  },
-  prefixText: {
-    fontSize: 16,
-    fontWeight: '600' as const,
-    color: '#6B7280',
-  },
   phoneInput: {
-    flex: 1,
     fontSize: 18,
     fontWeight: '600' as const,
     color: '#111827',
     paddingVertical: 16,
     paddingHorizontal: 12,
+    textAlign: 'right',
   },
   otpContainer: {
     marginTop: 24,
