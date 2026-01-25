@@ -1,9 +1,12 @@
 import { Tabs } from 'expo-router';
-import { LayoutDashboard, Archive } from 'lucide-react-native';
+import { LayoutDashboard, Archive, Users } from 'lucide-react-native';
 import { BlurView } from 'expo-blur';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function TabsLayout() {
+  const insets = useSafeAreaInsets();
+  
   return (
     <Tabs
       screenOptions={{
@@ -18,7 +21,8 @@ export default function TabsLayout() {
           borderTopWidth: 0,
           backgroundColor: 'transparent',
           elevation: 0,
-          height: 80,
+          height: 80 + insets.bottom,
+          paddingBottom: insets.bottom,
         },
         tabBarBackground: () => (
           <BlurView
@@ -39,6 +43,13 @@ export default function TabsLayout() {
         options={{
           title: 'דשבורד',
           tabBarIcon: ({ color, size }) => <LayoutDashboard size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="contacts"
+        options={{
+          title: 'אנשי קשר',
+          tabBarIcon: ({ color, size }) => <Users size={size} color={color} />,
         }}
       />
       <Tabs.Screen

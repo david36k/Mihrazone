@@ -30,6 +30,7 @@ import {
   ChevronLeft,
   Coins,
   Sparkles,
+  Languages,
 } from 'lucide-react-native';
 import { Tender } from '@/types';
 import { formatDate, getStatusColor, getStatusText } from '@/utils/formatting';
@@ -43,6 +44,7 @@ type Mode = 'work' | 'hire';
 export default function UnifiedDashboard() {
   const { currentUser, tenders, addCredits } = useApp();
   const [mode, setMode] = useState<Mode>('work');
+  const [language, setLanguage] = useState<'he' | 'en'>('he');
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
   const myWork = useMemo(() => {
@@ -120,6 +122,18 @@ export default function UnifiedDashboard() {
       />
       <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
         <BlurView intensity={90} tint="light" style={styles.header}>
+          <TouchableOpacity
+            style={styles.languageButton}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              setLanguage(language === 'he' ? 'en' : 'he');
+            }}
+          >
+            <Languages size={20} color={mode === 'work' ? '#10B981' : '#4F46E5'} />
+            <Text style={[styles.languageText, { color: mode === 'work' ? '#059669' : '#4F46E5' }]}>
+              {language === 'he' ? 'EN' : 'HE'}
+            </Text>
+          </TouchableOpacity>
           <View style={styles.headerContent}>
             <TouchableOpacity 
               style={[styles.avatarPlaceholder, { shadowColor: mode === 'work' ? '#10B981' : '#4F46E5' }]}
@@ -563,6 +577,24 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(0, 0, 0, 0.05)',
     overflow: 'hidden',
+    position: 'relative',
+  },
+  languageButton: {
+    position: 'absolute',
+    top: 16,
+    left: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    zIndex: 10,
+  },
+  languageText: {
+    fontSize: 12,
+    fontWeight: '600' as const,
   },
   headerContent: {
     flexDirection: 'row-reverse',
