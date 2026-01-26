@@ -15,7 +15,7 @@ interface TokenPackage {
   costPerJob: string;
   badge?: string;
   badgeColor?: string;
-  gradient: string[];
+  gradient: [string, string];
 }
 
 const TOKEN_PACKAGES: TokenPackage[] = [
@@ -25,7 +25,7 @@ const TOKEN_PACKAGES: TokenPackage[] = [
     price: '₪9.99',
     tokens: 10,
     costPerJob: '~₪2.00',
-    gradient: ['#8B5CF6', '#6D28D9'],
+    gradient: ['#8B5CF6', '#6D28D9'] as [string, string],
   },
   {
     id: 'popular',
@@ -35,7 +35,7 @@ const TOKEN_PACKAGES: TokenPackage[] = [
     costPerJob: '~₪1.66',
     badge: 'הכי משתלם',
     badgeColor: '#F59E0B',
-    gradient: ['#F59E0B', '#D97706'],
+    gradient: ['#F59E0B', '#D97706'] as [string, string],
   },
   {
     id: 'business',
@@ -45,7 +45,7 @@ const TOKEN_PACKAGES: TokenPackage[] = [
     costPerJob: '~₪1.40',
     badge: 'עסקים',
     badgeColor: '#4338CA',
-    gradient: ['#4F46E5', '#4338CA'],
+    gradient: ['#4F46E5', '#4338CA'] as [string, string],
   },
 ];
 

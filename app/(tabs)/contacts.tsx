@@ -423,9 +423,9 @@ export default function ContactsScreen() {
 
                     try {
                       if (validContacts.length === 1) {
-                        await addContact(validContacts[0]);
+                        await addContact({ ...validContacts[0], groups: [] });
                       } else {
-                        await addMultipleContacts(validContacts);
+                        await addMultipleContacts(validContacts.map(c => ({ ...c, groups: [] })));
                       }
                       
                       setShowAddModal(false);

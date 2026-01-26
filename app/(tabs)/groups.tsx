@@ -208,7 +208,7 @@ export default function GroupsScreen() {
                         <View style={styles.groupInfo}>
                           <Text style={styles.groupName}>{group.name}</Text>
                           <Text style={styles.groupMembers}>
-                            {group.members?.length || 0} חברים
+                            {group.contactIds?.length || 0} חברים
                           </Text>
                         </View>
                         <Crown size={20} color="#F59E0B" strokeWidth={2} />
