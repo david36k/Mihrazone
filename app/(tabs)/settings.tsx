@@ -61,9 +61,7 @@ export default function Settings() {
           style={styles.creditsCard}
           onPress={() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            if (currentUser) {
-              addCredits(currentUser.id, 10);
-            }
+            router.push('/tokens' as any);
           }}
           activeOpacity={0.8}
         >
@@ -100,6 +98,20 @@ export default function Settings() {
                 <Text style={styles.menuItemText}>ערוך פרופיל</Text>
               </View>
               <Edit size={20} color="#6B7280" />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                router.push('/tokens' as any);
+              }}
+            >
+              <View style={styles.menuItemRight}>
+                <ChevronLeft size={20} color="#9CA3AF" />
+                <Text style={styles.menuItemText}>טוקנים</Text>
+              </View>
+              <Coins size={20} color="#F59E0B" />
             </TouchableOpacity>
 
             <TouchableOpacity
