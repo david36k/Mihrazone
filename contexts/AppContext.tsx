@@ -4,6 +4,7 @@ import { Tender, Contact, InviteStatus } from '@/types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabaseQueries } from '@/utils/supabase-queries';
+import { supabase } from '@/lib/supabase';
 
 export const [AppProvider, useApp] = createContextHook(() => {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -47,6 +48,67 @@ export const [AppProvider, useApp] = createContextHook(() => {
     queryFn: () => supabaseQueries.groups.getByOwner(currentUserId!),
     enabled: !!currentUserId,
   });
+
+  useEffect(() => {
+    console.log('[AppContext] Setting up Realtime subscriptions...');
+
+    const tendersChannel = supabase
+      .channel('tenders-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'tenders',
+        },
+        (payload) => {
+          console.log('[Realtime] Tenders change detected:', payload.eventType);
+          queryClient.invalidateQueries({ queryKey: ['tenders'] });
+        }
+      )
+      .subscribe();
+
+    const invitesChannel = supabase
+      .channel('invites-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'invites',
+        },
+        (payload) => {
+          console.log('[Realtime] Invites change detected:', payload.eventType);
+          queryClient.invalidateQueries({ queryKey: ['tenders'] });
+        }
+      )
+      .subscribe();
+
+    const contactsChannel = supabase
+      .channel('contacts-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'contacts',
+        },
+        (payload) => {
+          console.log('[Realtime] Contacts change detected:', payload.eventType);
+          if (currentUserId) {
+            queryClient.invalidateQueries({ queryKey: ['contacts', currentUserId] });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      console.log('[AppContext] Cleaning up Realtime subscriptions...');
+      supabase.removeChannel(tendersChannel);
+      supabase.removeChannel(invitesChannel);
+      supabase.removeChannel(contactsChannel);
+    };
+  }, [queryClient, currentUserId]);
 
   const switchUserMutation = useMutation({
     mutationFn: async (userId: string) => {
