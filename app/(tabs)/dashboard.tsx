@@ -1,6 +1,5 @@
 import { useApp } from '@/contexts/AppContext';
 import { router } from 'expo-router';
-import { Alert } from 'react-native';
 import { useState, useMemo, useRef } from 'react';
 import * as Haptics from 'expo-haptics';
 import {
@@ -14,6 +13,7 @@ import {
   Platform,
   Animated,
   Pressable,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
