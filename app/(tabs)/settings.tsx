@@ -155,6 +155,11 @@ export default function Settings() {
           </View>
         </View>
 
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <LogOut size={24} color="#DC2626" />
+          <Text style={styles.logoutButtonText}>התנתק</Text>
+        </TouchableOpacity>
+
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>אזור מסוכן</Text>
           <View style={styles.dangerZone}>
@@ -200,11 +205,6 @@ export default function Settings() {
             </TouchableOpacity>
           </View>
         </View>
-
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <LogOut size={24} color="#DC2626" />
-          <Text style={styles.logoutButtonText}>התנתק</Text>
-        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
@@ -220,6 +220,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 20,
+    paddingBottom: 100,
   },
   header: {
     marginBottom: 24,
