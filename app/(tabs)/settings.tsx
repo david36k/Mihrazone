@@ -1,22 +1,24 @@
 import { useApp } from '@/contexts/AppContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { router } from 'expo-router';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Phone, LogOut, MessageCircle, Bell, ChevronLeft, Edit, Coins, Plus, AlertTriangle } from 'lucide-react-native';
+import { Phone, LogOut, MessageCircle, Bell, ChevronLeft, Edit, Coins, Plus, AlertTriangle, Languages } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function Settings() {
   const { currentUser, switchUser, deleteAccount } = useApp();
+  const { language, switchLanguage, t, isRTL } = useLanguage();
 
   const handleLogout = () => {
-    Alert.alert('התנתק', 'האם אתה בטוח שברצונך להתנתק?', [
+    Alert.alert(t('settings.logoutConfirm'), t('settings.logoutMessage'), [
       {
-        text: 'ביטול',
+        text: t('common.cancel'),
         style: 'cancel',
       },
       {
-        text: 'התנתק',
+        text: t('settings.logout'),
         style: 'destructive',
         onPress: async () => {
           await switchUser('');
@@ -38,19 +40,19 @@ export default function Settings() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
-          <Text style={styles.title}>הגדרות</Text>
-          <Text style={styles.subtitle}>נהל את החשבון שלך</Text>
+          <Text style={[styles.title, !isRTL && styles.textLeft]}>{t('settings.title')}</Text>
+          <Text style={[styles.subtitle, !isRTL && styles.textLeft]}>{t('settings.subtitle')}</Text>
         </View>
 
-        <View style={styles.profileCard}>
+        <View style={[styles.profileCard, !isRTL && styles.profileCardLTR]}>
           <View style={styles.profileIcon}>
             <Text style={styles.profileIconText}>
               {currentUser?.name?.charAt(0) || 'U'}
             </Text>
           </View>
-          <View style={styles.profileInfo}>
+          <View style={[styles.profileInfo, !isRTL && styles.profileInfoLTR]}>
             <Text style={styles.profileName}>{currentUser?.name}</Text>
-            <View style={styles.profileDetail}>
+            <View style={[styles.profileDetail, !isRTL && styles.profileDetailLTR]}>
               <Text style={styles.profilePhone}>{currentUser?.phone}</Text>
               <Phone size={16} color="#6B7280" />
             </View>
@@ -71,13 +73,13 @@ export default function Settings() {
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
           >
-            <View style={styles.creditsContent}>
+            <View style={[styles.creditsContent, !isRTL && styles.creditsContentLTR]}>
               <View style={styles.creditsIconContainer}>
                 <Coins size={32} color="#FFFFFF" />
               </View>
-              <View style={styles.creditsInfo}>
-                <Text style={styles.creditsLabel}>הקרדיטים שלי</Text>
-                <Text style={styles.creditsValue}>{currentUser?.credits || 0} קרדיטים</Text>
+              <View style={[styles.creditsInfo, !isRTL && styles.creditsInfoLTR]}>
+                <Text style={styles.creditsLabel}>{t('settings.myCredits')}</Text>
+                <Text style={styles.creditsValue}>{currentUser?.credits || 0} {t('dashboard.credits')}</Text>
               </View>
             </View>
             <View style={styles.addCreditsButton}>
@@ -87,15 +89,29 @@ export default function Settings() {
         </TouchableOpacity>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>כללי</Text>
+          <Text style={[styles.sectionTitle, !isRTL && styles.textLeft]}>{t('settings.general')}</Text>
           <View style={styles.menuCard}>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                switchLanguage(language === 'he' ? 'en' : 'he');
+              }}
+            >
+              <View style={[styles.menuItemRight, !isRTL && styles.menuItemLeft]}>
+                <ChevronLeft size={20} color="#9CA3AF" style={!isRTL && { transform: [{ rotate: '180deg' }] }} />
+                <Text style={styles.menuItemText}>{language === 'he' ? 'English' : 'עברית'}</Text>
+              </View>
+              <Languages size={20} color="#6B7280" />
+            </TouchableOpacity>
+
             <TouchableOpacity
               style={styles.menuItem}
               onPress={handleEditProfile}
             >
-              <View style={styles.menuItemRight}>
-                <ChevronLeft size={20} color="#9CA3AF" />
-                <Text style={styles.menuItemText}>ערוך פרופיל</Text>
+              <View style={[styles.menuItemRight, !isRTL && styles.menuItemLeft]}>
+                <ChevronLeft size={20} color="#9CA3AF" style={!isRTL && { transform: [{ rotate: '180deg' }] }} />
+                <Text style={styles.menuItemText}>{t('settings.editProfile')}</Text>
               </View>
               <Edit size={20} color="#6B7280" />
             </TouchableOpacity>
@@ -107,9 +123,9 @@ export default function Settings() {
                 router.push('/tokens' as any);
               }}
             >
-              <View style={styles.menuItemRight}>
-                <ChevronLeft size={20} color="#9CA3AF" />
-                <Text style={styles.menuItemText}>טוקנים</Text>
+              <View style={[styles.menuItemRight, !isRTL && styles.menuItemLeft]}>
+                <ChevronLeft size={20} color="#9CA3AF" style={!isRTL && { transform: [{ rotate: '180deg' }] }} />
+                <Text style={styles.menuItemText}>{t('settings.tokens')}</Text>
               </View>
               <Coins size={20} color="#F59E0B" />
             </TouchableOpacity>
@@ -118,12 +134,12 @@ export default function Settings() {
               style={styles.menuItem}
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                Alert.alert('התראות', 'הגדרות התראות בקרוב...');
+                Alert.alert(t('settings.notifications'), t('settings.notificationsComingSoon'));
               }}
             >
-              <View style={styles.menuItemRight}>
-                <ChevronLeft size={20} color="#9CA3AF" />
-                <Text style={styles.menuItemText}>התראות</Text>
+              <View style={[styles.menuItemRight, !isRTL && styles.menuItemLeft]}>
+                <ChevronLeft size={20} color="#9CA3AF" style={!isRTL && { transform: [{ rotate: '180deg' }] }} />
+                <Text style={styles.menuItemText}>{t('settings.notifications')}</Text>
               </View>
               <Bell size={20} color="#6B7280" />
             </TouchableOpacity>
@@ -132,43 +148,43 @@ export default function Settings() {
               style={[styles.menuItem, styles.menuItemLast]}
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                Alert.alert('צור קשר', 'ניתן ליצור קשר במייל:\nsupport@mihrazone.com');
+                Alert.alert(t('settings.contact'), t('settings.contactEmail'));
               }}
             >
-              <View style={styles.menuItemRight}>
-                <ChevronLeft size={20} color="#9CA3AF" />
-                <Text style={styles.menuItemText}>צור קשר</Text>
+              <View style={[styles.menuItemRight, !isRTL && styles.menuItemLeft]}>
+                <ChevronLeft size={20} color="#9CA3AF" style={!isRTL && { transform: [{ rotate: '180deg' }] }} />
+                <Text style={styles.menuItemText}>{t('settings.contact')}</Text>
               </View>
               <MessageCircle size={20} color="#6B7280" />
             </TouchableOpacity>
           </View>
         </View>
 
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+        <TouchableOpacity style={[styles.logoutButton, !isRTL && styles.logoutButtonLTR]} onPress={handleLogout}>
           <LogOut size={24} color="#DC2626" />
-          <Text style={styles.logoutButtonText}>התנתק</Text>
+          <Text style={styles.logoutButtonText}>{t('settings.logout')}</Text>
         </TouchableOpacity>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>אודות</Text>
+          <Text style={[styles.sectionTitle, !isRTL && styles.textLeft]}>{t('settings.about')}</Text>
           <View style={styles.aboutCard}>
-            <Text style={styles.aboutTitle}>Jobii</Text>
-            <Text style={styles.aboutText}>
-              מערכת ניהול מכרזים חכמה לגיוס עובדים מהיר ויעיל
+            <Text style={[styles.aboutTitle, !isRTL && styles.textLeft]}>Jobii</Text>
+            <Text style={[styles.aboutText, !isRTL && styles.textLeft]}>
+              {t('settings.appDescription')}
             </Text>
-            <Text style={styles.version}>גרסה 1.0.0</Text>
+            <Text style={[styles.version, !isRTL && styles.textLeft]}>{t('settings.version')} 1.0.0</Text>
           </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>אזור מסוכן</Text>
+          <Text style={[styles.sectionTitle, !isRTL && styles.textLeft]}>{t('settings.dangerZone')}</Text>
           <View style={styles.dangerZone}>
-            <View style={styles.dangerHeader}>
+            <View style={[styles.dangerHeader, !isRTL && styles.dangerHeaderLTR]}>
               <AlertTriangle size={24} color="#DC2626" strokeWidth={2} />
-              <Text style={styles.dangerTitle}>מחיקת חשבון</Text>
+              <Text style={styles.dangerTitle}>{t('settings.deleteAccount')}</Text>
             </View>
-            <Text style={styles.dangerDescription}>
-              פעולה זו תמחק את כל הנתונים שלך לצמיתות. לא ניתן לשחזר את החשבון לאחר המחיקה.
+            <Text style={[styles.dangerDescription, !isRTL && styles.textLeft]}>
+              {t('settings.deleteAccountDesc')}
             </Text>
             <TouchableOpacity
               style={styles.deleteButton}
@@ -177,15 +193,15 @@ export default function Settings() {
                   Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
                 }
                 Alert.alert(
-                  'האם אתה בטוח?',
-                  'פעולה זו תמחק את החשבון שלך לצמיתות ולא ניתנת לביטול.',
+                  t('settings.deleteAccountConfirm'),
+                  t('settings.deleteAccountMessage'),
                   [
                     {
-                      text: 'ביטול',
+                      text: t('common.cancel'),
                       style: 'cancel',
                     },
                     {
-                      text: 'מחק',
+                      text: t('common.delete'),
                       style: 'destructive',
                       onPress: async () => {
                         if (currentUser) {
@@ -201,7 +217,7 @@ export default function Settings() {
               }}
               activeOpacity={0.8}
             >
-              <Text style={styles.deleteButtonText}>מחיקת חשבון</Text>
+              <Text style={styles.deleteButtonText}>{t('settings.deleteAccount')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -251,6 +267,9 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 3,
   },
+  profileCardLTR: {
+    flexDirection: 'row',
+  },
   profileIcon: {
     width: 64,
     height: 64,
@@ -268,6 +287,9 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'flex-end',
   },
+  profileInfoLTR: {
+    alignItems: 'flex-start',
+  },
   profileName: {
     fontSize: 20,
     fontWeight: '700' as const,
@@ -278,6 +300,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row-reverse',
     alignItems: 'center',
     gap: 8,
+  },
+  profileDetailLTR: {
+    flexDirection: 'row',
   },
   profilePhone: {
     fontSize: 16,
@@ -305,6 +330,9 @@ const styles = StyleSheet.create({
     gap: 16,
     flex: 1,
   },
+  creditsContentLTR: {
+    flexDirection: 'row',
+  },
   creditsIconContainer: {
     width: 60,
     height: 60,
@@ -315,6 +343,9 @@ const styles = StyleSheet.create({
   },
   creditsInfo: {
     alignItems: 'flex-end',
+  },
+  creditsInfoLTR: {
+    alignItems: 'flex-start',
   },
   creditsLabel: {
     fontSize: 14,
@@ -368,6 +399,9 @@ const styles = StyleSheet.create({
     gap: 12,
     flex: 1,
   },
+  menuItemLeft: {
+    flexDirection: 'row',
+  },
   menuItemText: {
     fontSize: 16,
     color: '#111827',
@@ -417,6 +451,9 @@ const styles = StyleSheet.create({
     marginTop: 12,
     marginBottom: 24,
   },
+  logoutButtonLTR: {
+    flexDirection: 'row',
+  },
   logoutButtonText: {
     fontSize: 16,
     fontWeight: '600' as const,
@@ -434,6 +471,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
     marginBottom: 12,
+  },
+  dangerHeaderLTR: {
+    flexDirection: 'row',
   },
   dangerTitle: {
     fontSize: 18,
@@ -462,5 +502,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700' as const,
     color: '#FFFFFF',
+  },
+  textLeft: {
+    textAlign: 'left',
   },
 });

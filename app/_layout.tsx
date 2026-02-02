@@ -5,6 +5,7 @@ import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { AppProvider } from "@/contexts/AppContext";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 import { I18nManager } from "react-native";
 import { Toaster } from 'sonner-native';
 
@@ -35,10 +36,12 @@ export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <GestureHandlerRootView>
-        <AppProvider>
-          <RootLayoutNav />
-          <Toaster />
-        </AppProvider>
+        <LanguageProvider>
+          <AppProvider>
+            <RootLayoutNav />
+            <Toaster />
+          </AppProvider>
+        </LanguageProvider>
       </GestureHandlerRootView>
     </QueryClientProvider>
   );
