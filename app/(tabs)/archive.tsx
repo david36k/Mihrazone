@@ -27,9 +27,11 @@ import {
   Package,
 } from 'lucide-react-native';
 import { useApp } from '@/contexts/AppContext';
+import { colors } from '@/constants/colors';
 import { formatDate } from '@/utils/formatting';
 import { router } from 'expo-router';
 import { useLanguage } from '@/contexts/LanguageContext';
+import EmptyState from '@/components/EmptyState';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -140,7 +142,7 @@ export default function ArchiveScreen() {
               >
                 <View style={styles.statCardContent}>
                   <View style={[styles.statIcon, { backgroundColor: 'rgba(59, 130, 246, 0.1)' }]}>
-                    <Users size={24} color="#3B82F6" />
+                    <Users size={24} color={colors.blue} />
                   </View>
                   <Text style={styles.statValue}>{stats.organized}</Text>
                   <Text style={styles.statLabel}>{t('archive.organized')}</Text>
@@ -171,7 +173,7 @@ export default function ArchiveScreen() {
                 style={styles.statCard}
               >
                 <LinearGradient
-                  colors={['#10B981', '#059669']}
+                  colors={[colors.success, '#059669']}
                   style={styles.statCardGradient}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
@@ -196,7 +198,7 @@ export default function ArchiveScreen() {
             >
               {filterMode === 'all' && (
                 <LinearGradient
-                  colors={['#7C3AED', '#6D28D9']}
+                  colors={[colors.archivePrimary, colors.archiveDark]}
                   style={styles.filterButtonGradient}
                 />
               )}
@@ -219,7 +221,7 @@ export default function ArchiveScreen() {
             >
               {filterMode === 'organized' && (
                 <LinearGradient
-                  colors={['#7C3AED', '#6D28D9']}
+                  colors={[colors.archivePrimary, colors.archiveDark]}
                   style={styles.filterButtonGradient}
                 />
               )}
@@ -242,7 +244,7 @@ export default function ArchiveScreen() {
             >
               {filterMode === 'worked' && (
                 <LinearGradient
-                  colors={['#7C3AED', '#6D28D9']}
+                  colors={[colors.archivePrimary, colors.archiveDark]}
                   style={styles.filterButtonGradient}
                 />
               )}
@@ -262,24 +264,19 @@ export default function ArchiveScreen() {
               from={{ opacity: 0, translateY: 20 }}
               animate={{ opacity: 1, translateY: 0 }}
               transition={{ type: 'timing', duration: 500 }}
-              style={styles.emptyState}
             >
-              <View style={styles.emptyIconContainer}>
-                <LinearGradient
-                  colors={['#F3E8FF', '#EDE9FE']}
-                  style={styles.emptyIconGradient}
-                >
-                  <Archive size={64} color="#A78BFA" />
-                </LinearGradient>
-              </View>
-              <Text style={styles.emptyTitle}>{t('archive.noItems')}</Text>
-              <Text style={styles.emptySubtitle}>
-                {filterMode === 'all'
-                  ? t('archive.noItemsDesc')
-                  : filterMode === 'organized'
-                  ? t('archive.noItemsOrganizedDesc')
-                  : t('archive.noItemsWorkedDesc')}
-              </Text>
+              <EmptyState
+                icon={Archive}
+                title={t('archive.noItems')}
+                subtitle={
+                  filterMode === 'all'
+                    ? t('archive.noItemsDesc')
+                    : filterMode === 'organized'
+                    ? t('archive.noItemsOrganizedDesc')
+                    : t('archive.noItemsWorkedDesc')
+                }
+                iconColor={colors.archiveLight}
+              />
             </MotiView>
           ) : (
             <View style={styles.tendersSection}>
@@ -310,7 +307,7 @@ export default function ArchiveScreen() {
                         const route = isOrganizer
                           ? `/organizer/tender-details?id=${tender.id}`
                           : `/participant/tender-details?id=${tender.id}`;
-                        router.push(route as any);
+                        router.push(route);
                       }}
                     >
                       <View style={styles.cardHeader}>
@@ -322,8 +319,8 @@ export default function ArchiveScreen() {
                                 { backgroundColor: 'rgba(59, 130, 246, 0.15)' },
                               ]}
                             >
-                              <Users size={14} color="#3B82F6" />
-                              <Text style={[styles.roleBadgeText, { color: '#3B82F6' }]}>
+                              <Users size={14} color={colors.blue} />
+                              <Text style={[styles.roleBadgeText, { color: colors.blue }]}>
                                 {t('archive.organizedBadge')}
                               </Text>
                             </View>
@@ -342,14 +339,14 @@ export default function ArchiveScreen() {
                               {myInvite?.status === 'accepted' ? (
                                 <>
                                   <CheckCircle2 size={14} color="#10B981" />
-                                  <Text style={[styles.roleBadgeText, { color: '#10B981' }]}>
+                                  <Text style={[styles.roleBadgeText, { color: colors.success }]}>
                                     {t('archive.participatedBadge')}
                                   </Text>
                                 </>
                               ) : (
                                 <>
-                                  <XCircle size={14} color="#EF4444" />
-                                  <Text style={[styles.roleBadgeText, { color: '#EF4444' }]}>
+                                  <XCircle size={14} color={colors.errorLight} />
+                                  <Text style={[styles.roleBadgeText, { color: colors.errorLight }]}>
                                     {t('archive.rejectedBadge')}
                                   </Text>
                                 </>
@@ -384,7 +381,7 @@ export default function ArchiveScreen() {
                         ) : (
                           myInvite?.status === 'accepted' && (
                             <View style={styles.detailRow}>
-                              <Text style={[styles.detailTextBold, { color: '#10B981' }]}>
+                              <Text style={[styles.detailTextBold, { color: colors.success }]}>
                                 ₪{tender.pay.toLocaleString()}
                               </Text>
                               <DollarSign size={16} color="#10B981" />
@@ -448,7 +445,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 28,
     fontWeight: '700' as const,
-    color: '#111827',
+    color: colors.text,
   },
   scrollView: {
     flex: 1,
@@ -470,7 +467,7 @@ const styles = StyleSheet.create({
     minHeight: 120,
     borderRadius: 20,
     overflow: 'hidden',
-    shadowColor: '#7C3AED',
+    shadowColor: colors.archivePrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 16,
@@ -501,12 +498,12 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 24,
     fontWeight: '700' as const,
-    color: '#111827',
+    color: colors.text,
     marginBottom: 4,
   },
   statLabel: {
     fontSize: 13,
-    color: '#6B7280',
+    color: colors.textMuted,
     fontWeight: '500' as const,
   },
   statValueWhite: {
@@ -540,7 +537,7 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   filterButtonActive: {
-    shadowColor: '#7C3AED',
+    shadowColor: colors.archivePrimary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
@@ -557,7 +554,7 @@ const styles = StyleSheet.create({
   filterButtonText: {
     fontSize: 13,
     fontWeight: '600' as const,
-    color: '#6B7280',
+    color: colors.textMuted,
     zIndex: 1,
   },
   filterButtonTextActive: {
@@ -574,7 +571,7 @@ const styles = StyleSheet.create({
     borderRadius: 60,
     overflow: 'hidden',
     marginBottom: 24,
-    shadowColor: '#7C3AED',
+    shadowColor: colors.archivePrimary,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.15,
     shadowRadius: 20,
@@ -589,7 +586,7 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 22,
     fontWeight: '700' as const,
-    color: '#374151',
+    color: colors.textSecondary,
     marginBottom: 8,
   },
   emptySubtitle: {
@@ -605,7 +602,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600' as const,
-    color: '#6B7280',
+    color: colors.textMuted,
     marginBottom: 8,
     textAlign: 'right',
   },
@@ -614,7 +611,7 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     padding: 20,
     marginBottom: 12,
-    shadowColor: '#7C3AED',
+    shadowColor: colors.archivePrimary,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.12,
     shadowRadius: 20,
@@ -639,7 +636,7 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 18,
     fontWeight: '700' as const,
-    color: '#111827',
+    color: colors.text,
     flex: 1,
     textAlign: 'right',
     marginRight: 12,
@@ -666,13 +663,13 @@ const styles = StyleSheet.create({
   },
   detailText: {
     fontSize: 14,
-    color: '#6B7280',
+    color: colors.textMuted,
     fontWeight: '500' as const,
   },
   detailTextBold: {
     fontSize: 14,
     fontWeight: '600' as const,
-    color: '#111827',
+    color: colors.text,
   },
   progressContainer: {
     marginTop: 12,
@@ -688,7 +685,7 @@ const styles = StyleSheet.create({
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#7C3AED',
+    backgroundColor: colors.archivePrimary,
     borderRadius: 3,
   },
 });

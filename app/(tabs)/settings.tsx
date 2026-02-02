@@ -1,4 +1,5 @@
 import { useApp } from '@/contexts/AppContext';
+import { colors } from '@/constants/colors';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { router } from 'expo-router';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert, Platform } from 'react-native';
@@ -8,7 +9,7 @@ import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function Settings() {
-  const { currentUser, switchUser, deleteAccount } = useApp();
+  const { currentUser, logout, deleteAccount } = useApp();
   const { language, switchLanguage, t, isRTL } = useLanguage();
 
   const handleLogout = () => {
@@ -21,11 +22,9 @@ export default function Settings() {
         text: t('settings.logout'),
         style: 'destructive',
         onPress: async () => {
-          await switchUser('');
-          setTimeout(() => {
-            router.replace('/');
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-          }, 100);
+          await logout();
+          router.replace('/');
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         },
       },
     ]);
@@ -33,7 +32,7 @@ export default function Settings() {
 
   const handleEditProfile = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.push('/profile/edit' as any);
+    router.push('/profile/edit');
   };
 
   return (
@@ -54,7 +53,7 @@ export default function Settings() {
             <Text style={styles.profileName}>{currentUser?.name}</Text>
             <View style={[styles.profileDetail, !isRTL && styles.profileDetailLTR]}>
               <Text style={styles.profilePhone}>{currentUser?.phone}</Text>
-              <Phone size={16} color="#6B7280" />
+              <Phone size={16} color={colors.textMuted} />
             </View>
           </View>
         </View>
@@ -63,19 +62,19 @@ export default function Settings() {
           style={styles.creditsCard}
           onPress={() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            router.push('/tokens' as any);
+            router.push('/tokens');
           }}
           activeOpacity={0.8}
         >
           <LinearGradient
-            colors={['#F59E0B', '#D97706']}
+            colors={[colors.warning, colors.warningDark]}
             style={styles.creditsGradient}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
           >
             <View style={[styles.creditsContent, !isRTL && styles.creditsContentLTR]}>
               <View style={styles.creditsIconContainer}>
-                <Coins size={32} color="#FFFFFF" />
+                <Coins size={32} color={colors.background} />
               </View>
               <View style={[styles.creditsInfo, !isRTL && styles.creditsInfoLTR]}>
                 <Text style={styles.creditsLabel}>{t('settings.myCredits')}</Text>
@@ -83,7 +82,7 @@ export default function Settings() {
               </View>
             </View>
             <View style={styles.addCreditsButton}>
-              <Plus size={24} color="#FFFFFF" />
+              <Plus size={24} color={colors.background} />
             </View>
           </LinearGradient>
         </TouchableOpacity>
@@ -99,10 +98,10 @@ export default function Settings() {
               }}
             >
               <View style={[styles.menuItemRight, !isRTL && styles.menuItemLeft]}>
-                <ChevronLeft size={20} color="#9CA3AF" style={!isRTL && { transform: [{ rotate: '180deg' }] }} />
+                <ChevronLeft size={20} color={colors.muted} style={!isRTL && { transform: [{ rotate: '180deg' }] }} />
                 <Text style={styles.menuItemText}>{language === 'he' ? 'English' : 'עברית'}</Text>
               </View>
-              <Languages size={20} color="#6B7280" />
+              <Languages size={20} color={colors.textMuted} />
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -110,24 +109,24 @@ export default function Settings() {
               onPress={handleEditProfile}
             >
               <View style={[styles.menuItemRight, !isRTL && styles.menuItemLeft]}>
-                <ChevronLeft size={20} color="#9CA3AF" style={!isRTL && { transform: [{ rotate: '180deg' }] }} />
+                <ChevronLeft size={20} color={colors.muted} style={!isRTL && { transform: [{ rotate: '180deg' }] }} />
                 <Text style={styles.menuItemText}>{t('settings.editProfile')}</Text>
               </View>
-              <Edit size={20} color="#6B7280" />
+              <Edit size={20} color={colors.textMuted} />
             </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.menuItem}
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                router.push('/tokens' as any);
+                router.push('/tokens');
               }}
             >
               <View style={[styles.menuItemRight, !isRTL && styles.menuItemLeft]}>
-                <ChevronLeft size={20} color="#9CA3AF" style={!isRTL && { transform: [{ rotate: '180deg' }] }} />
+                <ChevronLeft size={20} color={colors.muted} style={!isRTL && { transform: [{ rotate: '180deg' }] }} />
                 <Text style={styles.menuItemText}>{t('settings.tokens')}</Text>
               </View>
-              <Coins size={20} color="#F59E0B" />
+              <Coins size={20} color={colors.warning} />
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -138,10 +137,10 @@ export default function Settings() {
               }}
             >
               <View style={[styles.menuItemRight, !isRTL && styles.menuItemLeft]}>
-                <ChevronLeft size={20} color="#9CA3AF" style={!isRTL && { transform: [{ rotate: '180deg' }] }} />
+                <ChevronLeft size={20} color={colors.muted} style={!isRTL && { transform: [{ rotate: '180deg' }] }} />
                 <Text style={styles.menuItemText}>{t('settings.notifications')}</Text>
               </View>
-              <Bell size={20} color="#6B7280" />
+              <Bell size={20} color={colors.textMuted} />
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -152,16 +151,16 @@ export default function Settings() {
               }}
             >
               <View style={[styles.menuItemRight, !isRTL && styles.menuItemLeft]}>
-                <ChevronLeft size={20} color="#9CA3AF" style={!isRTL && { transform: [{ rotate: '180deg' }] }} />
+                <ChevronLeft size={20} color={colors.muted} style={!isRTL && { transform: [{ rotate: '180deg' }] }} />
                 <Text style={styles.menuItemText}>{t('settings.contact')}</Text>
               </View>
-              <MessageCircle size={20} color="#6B7280" />
+              <MessageCircle size={20} color={colors.textMuted} />
             </TouchableOpacity>
           </View>
         </View>
 
         <TouchableOpacity style={[styles.logoutButton, !isRTL && styles.logoutButtonLTR]} onPress={handleLogout}>
-          <LogOut size={24} color="#DC2626" />
+          <LogOut size={24} color={colors.error} />
           <Text style={styles.logoutButtonText}>{t('settings.logout')}</Text>
         </TouchableOpacity>
 
@@ -180,7 +179,7 @@ export default function Settings() {
           <Text style={[styles.sectionTitle, !isRTL && styles.textLeft]}>{t('settings.dangerZone')}</Text>
           <View style={styles.dangerZone}>
             <View style={[styles.dangerHeader, !isRTL && styles.dangerHeaderLTR]}>
-              <AlertTriangle size={24} color="#DC2626" strokeWidth={2} />
+              <AlertTriangle size={24} color={colors.error} strokeWidth={2} />
               <Text style={styles.dangerTitle}>{t('settings.deleteAccount')}</Text>
             </View>
             <Text style={[styles.dangerDescription, !isRTL && styles.textLeft]}>
@@ -229,7 +228,7 @@ export default function Settings() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: colors.backgroundAlt,
   },
   scrollView: {
     flex: 1,
@@ -244,24 +243,24 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: '700' as const,
-    color: '#111827',
+    color: colors.text,
     marginBottom: 4,
     textAlign: 'right',
   },
   subtitle: {
     fontSize: 16,
-    color: '#6B7280',
+    color: colors.textMuted,
     textAlign: 'right',
   },
   profileCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.background,
     borderRadius: 16,
     padding: 20,
     marginBottom: 24,
     flexDirection: 'row-reverse',
     alignItems: 'center',
     gap: 16,
-    shadowColor: '#000',
+    shadowColor: colors.text,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 8,
@@ -274,14 +273,14 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#4F46E5',
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
   profileIconText: {
     fontSize: 28,
     fontWeight: '700' as const,
-    color: '#FFFFFF',
+    color: colors.background,
   },
   profileInfo: {
     flex: 1,
@@ -293,7 +292,7 @@ const styles = StyleSheet.create({
   profileName: {
     fontSize: 20,
     fontWeight: '700' as const,
-    color: '#111827',
+    color: colors.text,
     marginBottom: 4,
   },
   profileDetail: {
@@ -306,13 +305,13 @@ const styles = StyleSheet.create({
   },
   profilePhone: {
     fontSize: 16,
-    color: '#6B7280',
+    color: colors.textMuted,
   },
   creditsCard: {
     borderRadius: 20,
     overflow: 'hidden',
     marginBottom: 24,
-    shadowColor: '#F59E0B',
+    shadowColor: colors.warning,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.3,
     shadowRadius: 20,
@@ -337,7 +336,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: colors.whiteOverlay,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -355,13 +354,13 @@ const styles = StyleSheet.create({
   creditsValue: {
     fontSize: 28,
     fontWeight: '700' as const,
-    color: '#FFFFFF',
+    color: colors.background,
   },
   addCreditsButton: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: colors.whiteOverlay,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -371,15 +370,15 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600' as const,
-    color: '#6B7280',
+    color: colors.textMuted,
     marginBottom: 12,
     textAlign: 'right',
   },
   menuCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.background,
     borderRadius: 12,
     overflow: 'hidden',
-    shadowColor: '#000',
+    shadowColor: colors.text,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
@@ -391,7 +390,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: colors.borderLighter,
   },
   menuItemRight: {
     flexDirection: 'row-reverse',
@@ -404,16 +403,16 @@ const styles = StyleSheet.create({
   },
   menuItemText: {
     fontSize: 16,
-    color: '#111827',
+    color: colors.text,
   },
   menuItemLast: {
     borderBottomWidth: 0,
   },
   aboutCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.background,
     borderRadius: 16,
     padding: 20,
-    shadowColor: '#000',
+    shadowColor: colors.text,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 8,
@@ -422,32 +421,32 @@ const styles = StyleSheet.create({
   aboutTitle: {
     fontSize: 24,
     fontWeight: '700' as const,
-    color: '#4F46E5',
+    color: colors.primary,
     marginBottom: 8,
     textAlign: 'right',
   },
   aboutText: {
     fontSize: 15,
     lineHeight: 22,
-    color: '#6B7280',
+    color: colors.textMuted,
     marginBottom: 12,
     textAlign: 'right',
   },
   version: {
     fontSize: 14,
-    color: '#9CA3AF',
+    color: colors.muted,
     textAlign: 'right',
   },
   logoutButton: {
     flexDirection: 'row-reverse',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.background,
     paddingVertical: 16,
     borderRadius: 12,
     gap: 8,
     borderWidth: 2,
-    borderColor: '#DC2626',
+    borderColor: colors.error,
     marginTop: 12,
     marginBottom: 24,
   },
@@ -457,14 +456,14 @@ const styles = StyleSheet.create({
   logoutButtonText: {
     fontSize: 16,
     fontWeight: '600' as const,
-    color: '#DC2626',
+    color: colors.error,
   },
   dangerZone: {
-    backgroundColor: 'rgba(239, 68, 68, 0.05)',
+    backgroundColor: colors.errorBg,
     borderRadius: 16,
     padding: 20,
     borderWidth: 2,
-    borderColor: 'rgba(239, 68, 68, 0.2)',
+    borderColor: colors.errorBorder,
   },
   dangerHeader: {
     flexDirection: 'row-reverse',
@@ -478,21 +477,21 @@ const styles = StyleSheet.create({
   dangerTitle: {
     fontSize: 18,
     fontWeight: '700' as const,
-    color: '#DC2626',
+    color: colors.error,
   },
   dangerDescription: {
     fontSize: 14,
-    color: '#6B7280',
+    color: colors.textMuted,
     lineHeight: 20,
     marginBottom: 20,
     textAlign: 'right',
   },
   deleteButton: {
-    backgroundColor: '#DC2626',
+    backgroundColor: colors.error,
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
-    shadowColor: '#DC2626',
+    shadowColor: colors.error,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 12,
@@ -501,7 +500,7 @@ const styles = StyleSheet.create({
   deleteButtonText: {
     fontSize: 16,
     fontWeight: '700' as const,
-    color: '#FFFFFF',
+    color: colors.background,
   },
   textLeft: {
     textAlign: 'left',

@@ -15,11 +15,12 @@ import { User, Phone, Save } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 
 export default function EditProfile() {
-  const { currentUser } = useApp();
+  const { currentUser, updateProfile } = useApp();
   const [name, setName] = useState(currentUser?.name || '');
   const [phone, setPhone] = useState(currentUser?.phone || '');
+  const [isSaving, setIsSaving] = useState(false);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!name.trim()) {
       Alert.alert('שגיאה', 'נא למלא את השם');
       return;
@@ -30,17 +31,25 @@ export default function EditProfile() {
       return;
     }
 
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    Alert.alert(
-      'השינויים נשמרו',
-      'הפרופיל עודכן בהצלחה',
-      [
-        {
-          text: 'אישור',
-          onPress: () => router.back(),
-        },
-      ]
-    );
+    if (!currentUser) return;
+
+    setIsSaving(true);
+    try {
+      await updateProfile(currentUser.id, { name: name.trim(), phone: phone.trim() });
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      Alert.alert(
+        'השינויים נשמרו',
+        'הפרופיל עודכן בהצלחה',
+        [{ text: 'אישור', onPress: () => router.back() }]
+      );
+    } catch (error: any) {
+      const message = error?.message?.includes('unique') || error?.code === '23505'
+        ? 'מספר הטלפון כבר בשימוש'
+        : 'אירעה שגיאה בעדכון הפרופיל';
+      Alert.alert('שגיאה', message);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -110,9 +119,10 @@ export default function EditProfile() {
             style={styles.saveButton}
             onPress={handleSave}
             activeOpacity={0.8}
+            disabled={isSaving}
           >
             <Save size={24} color="#FFFFFF" />
-            <Text style={styles.saveButtonText}>שמור שינויים</Text>
+            <Text style={styles.saveButtonText}>{isSaving ? 'שומר...' : 'שמור שינויים'}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>

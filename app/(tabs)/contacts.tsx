@@ -1,4 +1,5 @@
 import { useApp } from '@/contexts/AppContext';
+import { colors } from '@/constants/colors';
 import { useState, useMemo } from 'react';
 import * as Haptics from 'expo-haptics';
 import * as Contacts from 'expo-contacts';
@@ -33,6 +34,7 @@ import {
   Tag as TagIcon,
   FileText,
 } from 'lucide-react-native';
+import EmptyState from '@/components/EmptyState';
 
 type NewContact = {
   name: string;
@@ -212,7 +214,7 @@ export default function ContactsScreen() {
             }}
           >
             <LinearGradient
-              colors={['#6366F1', '#4F46E5']}
+              colors={[colors.primaryLight, colors.primary]}
               style={styles.addButtonGradient}
             >
               <UserPlus size={20} color="#FFFFFF" />
@@ -250,13 +252,13 @@ export default function ContactsScreen() {
               >
                 {selectedView === 'contacts' && (
                   <LinearGradient
-                    colors={['#6366F1', '#4F46E5']}
+                    colors={[colors.primaryLight, colors.primary]}
                     style={styles.viewButtonGradient}
                   />
                 )}
                 <User
                   size={18}
-                  color={selectedView === 'contacts' ? '#FFFFFF' : '#6B7280'}
+                  color={selectedView === 'contacts' ? '#FFFFFF' : colors.textMuted}
                   style={{ zIndex: 1 }}
                 />
                 <Text
@@ -283,13 +285,13 @@ export default function ContactsScreen() {
               >
                 {selectedView === 'groups' && (
                   <LinearGradient
-                    colors={['#6366F1', '#4F46E5']}
+                    colors={[colors.primaryLight, colors.primary]}
                     style={styles.viewButtonGradient}
                   />
                 )}
                 <Users
                   size={18}
-                  color={selectedView === 'groups' ? '#FFFFFF' : '#6B7280'}
+                  color={selectedView === 'groups' ? '#FFFFFF' : colors.textMuted}
                   style={{ zIndex: 1 }}
                 />
                 <Text
@@ -311,15 +313,11 @@ export default function ContactsScreen() {
           >
             {selectedView === 'contacts' ? (
               filteredContacts.length === 0 ? (
-                <View style={styles.emptyState}>
-                  <User size={48} color="#D1D5DB" />
-                  <Text style={styles.emptyStateText}>
-                    {searchQuery ? 'לא נמצאו אנשי קשר' : 'אין אנשי קשר'}
-                  </Text>
-                  <Text style={styles.emptyStateSubtext}>
-                    {searchQuery ? 'נסה חיפוש אחר' : 'הוסף אנשי קשר כדי להתחיל'}
-                  </Text>
-                </View>
+                <EmptyState
+                  icon={User}
+                  title={searchQuery ? 'לא נמצאו אנשי קשר' : 'אין אנשי קשר'}
+                  subtitle={searchQuery ? 'נסה חיפוש אחר' : 'הוסף אנשי קשר כדי להתחיל'}
+                />
               ) : (
                 filteredContacts.map((contact, index) => (
                   <MotiView
@@ -341,7 +339,7 @@ export default function ContactsScreen() {
                     >
                       <View style={styles.contactAvatar}>
                         <LinearGradient
-                          colors={['#6366F1', '#4F46E5']}
+                          colors={[colors.primaryLight, colors.primary]}
                           style={styles.avatarGradient}
                         >
                           <Text style={styles.avatarText}>
@@ -382,15 +380,11 @@ export default function ContactsScreen() {
               )
             ) : (
               filteredGroups.length === 0 ? (
-                <View style={styles.emptyState}>
-                  <Users size={48} color="#D1D5DB" />
-                  <Text style={styles.emptyStateText}>
-                    {searchQuery ? 'לא נמצאו קבוצות' : 'אין קבוצות'}
-                  </Text>
-                  <Text style={styles.emptyStateSubtext}>
-                    {searchQuery ? 'נסה חיפוש אחר' : 'צור קבוצה כדי להתחיל'}
-                  </Text>
-                </View>
+                <EmptyState
+                  icon={Users}
+                  title={searchQuery ? 'לא נמצאו קבוצות' : 'אין קבוצות'}
+                  subtitle={searchQuery ? 'נסה חיפוש אחר' : 'צור קבוצה כדי להתחיל'}
+                />
               ) : (
                 filteredGroups.map((group, index) => (
                   <MotiView
@@ -412,7 +406,7 @@ export default function ContactsScreen() {
                     >
                       <View style={styles.groupIcon}>
                         <LinearGradient
-                          colors={['#10B981', '#059669']}
+                          colors={[colors.success, '#059669']}
                           style={styles.groupIconGradient}
                         >
                           <Users size={24} color="#FFFFFF" />
@@ -474,7 +468,7 @@ export default function ContactsScreen() {
                   activeOpacity={0.7}
                 >
                   <LinearGradient
-                    colors={['#10B981', '#059669']}
+                    colors={[colors.success, '#059669']}
                     style={styles.importButtonGradient}
                   >
                     <Download size={20} color="#FFFFFF" />
@@ -574,7 +568,7 @@ export default function ContactsScreen() {
                   activeOpacity={0.8}
                 >
                   <LinearGradient
-                    colors={['#6366F1', '#4F46E5']}
+                    colors={[colors.primaryLight, colors.primary]}
                     style={styles.saveButtonGradient}
                   >
                     <Check size={24} color="#FFFFFF" />
@@ -661,7 +655,7 @@ export default function ContactsScreen() {
                 disabled={selectedContactIds.size === 0}
               >
                 <LinearGradient
-                  colors={selectedContactIds.size === 0 ? ['#9CA3AF', '#6B7280'] : ['#10B981', '#059669']}
+                  colors={selectedContactIds.size === 0 ? [colors.muted, colors.textMuted] : [colors.success, '#059669']}
                   style={styles.saveButtonGradient}
                 >
                   <Download size={24} color="#FFFFFF" />
@@ -699,14 +693,14 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.text,
   },
   addButton: {
     width: 44,
     height: 44,
     borderRadius: 22,
     overflow: 'hidden',
-    shadowColor: '#4F46E5',
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
@@ -739,7 +733,7 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 16,
-    color: '#111827',
+    color: colors.text,
     textAlign: 'right',
   },
   viewToggleContainer: {
@@ -782,7 +776,7 @@ const styles = StyleSheet.create({
   viewButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#6B7280',
+    color: colors.textMuted,
     zIndex: 1,
   },
   viewButtonTextActive: {
@@ -802,14 +796,14 @@ const styles = StyleSheet.create({
   emptyStateText: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#6B7280',
+    color: colors.textMuted,
     marginTop: 16,
     marginBottom: 4,
     textAlign: 'center',
   },
   emptyStateSubtext: {
     fontSize: 14,
-    color: '#9CA3AF',
+    color: colors.muted,
     textAlign: 'center',
   },
   contactCard: {
@@ -817,7 +811,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 16,
     marginBottom: 12,
-    shadowColor: '#4F46E5',
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
     shadowRadius: 16,
@@ -837,7 +831,7 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: 28,
     overflow: 'hidden',
-    shadowColor: '#4F46E5',
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 6,
@@ -862,7 +856,7 @@ const styles = StyleSheet.create({
   contactName: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#111827',
+    color: colors.text,
   },
   tagBadge: {
     flexDirection: 'row-reverse',
@@ -876,7 +870,7 @@ const styles = StyleSheet.create({
   tagText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#6366F1',
+    color: colors.primaryLight,
   },
   contactDetailsRow: {
     flexDirection: 'row-reverse',
@@ -885,11 +879,11 @@ const styles = StyleSheet.create({
   },
   contactDetail: {
     fontSize: 14,
-    color: '#6B7280',
+    color: colors.textMuted,
   },
   contactNotes: {
     fontSize: 13,
-    color: '#9CA3AF',
+    color: colors.muted,
     fontStyle: 'italic',
     maxWidth: '90%',
   },
@@ -898,7 +892,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 16,
     marginBottom: 12,
-    shadowColor: '#10B981',
+    shadowColor: colors.success,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
     shadowRadius: 16,
@@ -914,7 +908,7 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: 28,
     overflow: 'hidden',
-    shadowColor: '#10B981',
+    shadowColor: colors.success,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 6,
@@ -934,11 +928,11 @@ const styles = StyleSheet.create({
   groupName: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#111827',
+    color: colors.text,
   },
   groupMembers: {
     fontSize: 14,
-    color: '#6B7280',
+    color: colors.textMuted,
   },
   modalContainer: {
     flex: 1,
@@ -956,7 +950,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.text,
   },
   modalContent: {
     flex: 1,
@@ -972,7 +966,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: 'hidden',
     marginBottom: 24,
-    shadowColor: '#10B981',
+    shadowColor: colors.success,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 12,
@@ -1003,14 +997,14 @@ const styles = StyleSheet.create({
   },
   dividerText: {
     fontSize: 14,
-    color: '#9CA3AF',
+    color: colors.muted,
     fontWeight: '500',
   },
   contactForm: {
     backgroundColor: 'rgba(255, 255, 255, 0.7)',
     borderRadius: 20,
     padding: 20,
-    shadowColor: '#4F46E5',
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
     shadowRadius: 16,
@@ -1024,7 +1018,7 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#374151',
+    color: colors.textSecondary,
     marginBottom: 8,
     textAlign: 'right',
   },
@@ -1042,7 +1036,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 16,
-    color: '#111827',
+    color: colors.text,
     textAlign: 'right',
   },
   textAreaContainer: {
@@ -1067,7 +1061,7 @@ const styles = StyleSheet.create({
   saveButton: {
     borderRadius: 16,
     overflow: 'hidden',
-    shadowColor: '#4F46E5',
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.3,
     shadowRadius: 20,
@@ -1107,7 +1101,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(0, 0, 0, 0.05)',
   },
   importContactCardSelected: {
-    borderColor: '#10B981',
+    borderColor: colors.success,
     backgroundColor: 'rgba(16, 185, 129, 0.05)',
   },
   checkbox: {
@@ -1123,7 +1117,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#10B981',
+    backgroundColor: colors.success,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1134,11 +1128,11 @@ const styles = StyleSheet.create({
   importContactName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#111827',
+    color: colors.text,
     marginBottom: 4,
   },
   importContactPhone: {
     fontSize: 14,
-    color: '#6B7280',
+    color: colors.textMuted,
   },
 });

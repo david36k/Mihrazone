@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { View, TouchableOpacity, StyleSheet, Platform, Animated, Dimensions, Text } from 'react-native';
+import { colors } from '@/constants/colors';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
@@ -81,7 +82,7 @@ export default function BottomNavBar({ items }: BottomNavBarProps) {
       }),
     ]).start();
 
-    router.push(route as any);
+    router.push(route);
   };
 
   const isActive = (route: string) => {
@@ -130,7 +131,7 @@ export default function BottomNavBar({ items }: BottomNavBarProps) {
                   >
                     <Icon
                       size={26}
-                      color={active ? '#6366F1' : '#64748B'}
+                      color={active ? colors.primaryLight : colors.textMuted}
                       strokeWidth={active ? 2.5 : 2}
                     />
                   </Animated.View>
@@ -177,7 +178,7 @@ const styles = StyleSheet.create({
     overflow: 'visible',
     ...Platform.select({
       ios: {
-        shadowColor: '#6366F1',
+        shadowColor: colors.primaryLight,
         shadowOffset: { width: 0, height: 12 },
         shadowOpacity: 0.2,
         shadowRadius: 28,
@@ -191,9 +192,9 @@ const styles = StyleSheet.create({
     paddingVertical: Platform.OS === 'android' ? 12 : 16,
     paddingTop: Platform.OS === 'android' ? 8 : 12,
     borderWidth: 1.5,
-    borderColor: 'rgba(99, 102, 241, 0.15)',
+    borderColor: colors.glassBorder,
     borderRadius: 28,
-    backgroundColor: Platform.OS === 'android' ? 'rgba(255, 255, 255, 1)' : 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: Platform.OS === 'android' ? colors.background : colors.glassBackgroundStrong,
     overflow: 'hidden',
   },
   innerContainer: {
@@ -226,7 +227,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: Platform.OS === 'android' ? 4 : 8,
     height: 3,
-    backgroundColor: '#6366F1',
+    backgroundColor: colors.primaryLight,
     borderRadius: 3,
   },
 });

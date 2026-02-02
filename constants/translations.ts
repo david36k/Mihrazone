@@ -204,7 +204,7 @@ export const translations: Record<Language, TranslationKeys> = {
       deleteAccountConfirm: 'האם אתה בטוח?',
       deleteAccountMessage: 'פעולה זו תמחק את החשבון שלך לצמיתות ולא ניתנת לביטול.',
       notificationsComingSoon: 'הגדרות התראות בקרוב...',
-      contactEmail: 'ניתן ליצור קשר במייל:\nsupport@mihrazone.com',
+      contactEmail: 'ניתן ליצור קשר במייל:\nsupport@jobii.com',
     },
     contacts: {
       title: 'אנשי קשר',
@@ -344,7 +344,7 @@ export const translations: Record<Language, TranslationKeys> = {
       deleteAccountConfirm: 'Are you sure?',
       deleteAccountMessage: 'This action will permanently delete your account and cannot be undone.',
       notificationsComingSoon: 'Notification settings coming soon...',
-      contactEmail: 'You can contact us by email:\nsupport@mihrazone.com',
+      contactEmail: 'You can contact us by email:\nsupport@jobii.com',
     },
     contacts: {
       title: 'Contacts',

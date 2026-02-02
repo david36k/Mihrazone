@@ -67,6 +67,22 @@ export const supabaseQueries = {
 
       return data || 0;
     },
+
+    update: async (userId: string, updates: { name?: string; phone?: string }) => {
+      const { data, error } = await supabase
+        .from('users')
+        .update({
+          ...(updates.name !== undefined && { name: updates.name }),
+          ...(updates.phone !== undefined && { phone: updates.phone }),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', userId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return mapUserFromDB(data);
+    },
     
     delete: async (userId: string) => {
       const { error } = await supabase
@@ -183,6 +199,8 @@ export const supabaseQueries = {
   },
   
   invites: {
+    // Updates invite by user_id. Only registered users (with a row in users) can accept/reject in-app.
+    // Guests invited by phone only (user_id null) cannot use this flow; they would need a separate path (e.g. link + phone/OTP).
     updateStatus: async (tenderId: string, userId: string, status: InviteStatus) => {
       const { error } = await supabase
         .from('invites')

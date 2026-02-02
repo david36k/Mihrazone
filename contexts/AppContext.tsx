@@ -127,8 +127,16 @@ export const [AppProvider, useApp] = createContextHook(() => {
     mutationFn: ({ userId, amount }: { userId: string; amount: number }) => {
       return supabaseQueries.users.addCredits(userId, amount);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user', currentUserId] });
+    onSuccess: (_, { userId }) => {
+      queryClient.invalidateQueries({ queryKey: ['user', userId] });
+    },
+  });
+
+  const updateProfileMutation = useMutation({
+    mutationFn: ({ userId, updates }: { userId: string; updates: { name?: string; phone?: string } }) =>
+      supabaseQueries.users.update(userId, updates),
+    onSuccess: (_, { userId }) => {
+      queryClient.invalidateQueries({ queryKey: ['user', userId] });
     },
   });
 
@@ -213,6 +221,10 @@ export const [AppProvider, useApp] = createContextHook(() => {
     addCreditsMutation.mutate({ userId, amount });
   };
 
+  const updateProfile = async (userId: string, updates: { name?: string; phone?: string }) => {
+    return updateProfileMutation.mutateAsync({ userId, updates });
+  };
+
   const createTender = async (tender: Omit<Tender, 'id' | 'createdAt' | 'status'>) => {
     if (!tender.location) {
       throw new Error('Location is required');
@@ -279,6 +291,7 @@ export const [AppProvider, useApp] = createContextHook(() => {
     updateContact,
     deleteAccount,
     logout,
+    updateProfile,
   };
 });
 

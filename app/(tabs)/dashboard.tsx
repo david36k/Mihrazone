@@ -1,6 +1,11 @@
 import { useApp } from '@/contexts/AppContext';
+import { colors } from '@/constants/colors';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useDashboardMode } from '@/hooks/useDashboardMode';
+import { useWorkViewData } from '@/hooks/useWorkViewData';
+import { useHireViewData } from '@/hooks/useHireViewData';
 import { router } from 'expo-router';
-import { useState, useMemo, useRef } from 'react';
+import { useRef } from 'react';
 import * as Haptics from 'expo-haptics';
 import {
   View,
@@ -35,69 +40,19 @@ import {
 } from 'lucide-react-native';
 import { Tender } from '@/types';
 import { formatDate, getStatusColor, getStatusText } from '@/utils/formatting';
+import EmptyState from '@/components/EmptyState';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-type Mode = 'work' | 'hire';
-
 export default function UnifiedDashboard() {
   const { currentUser, tenders, addCredits } = useApp();
-  const [mode, setMode] = useState<Mode>('work');
-  const [language, setLanguage] = useState<'he' | 'en'>('he');
+  const { mode, handleModeChange } = useDashboardMode();
+  const { myWork, monthlyEarnings, upcomingShifts } = useWorkViewData(currentUser, tenders);
+  const { myTenders, hasNoCredits, hasLowCredits } = useHireViewData(currentUser, tenders);
+  const { language, switchLanguage, t } = useLanguage();
   const scaleAnim = useRef(new Animated.Value(1)).current;
-
-  const myWork = useMemo(() => {
-    if (!currentUser) return [];
-    return tenders.filter((t) =>
-      t.invites.some((invite) => invite.userId === currentUser.id)
-    );
-  }, [currentUser, tenders]);
-
-  const myTenders = useMemo(() => {
-    if (!currentUser) return [];
-    return tenders.filter((t) => t.organizerId === currentUser.id);
-  }, [currentUser, tenders]);
-
-  const handleModeChange = (newMode: Mode) => {
-    if (newMode !== mode) {
-      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      setMode(newMode);
-    }
-  };
-
-  const monthlyEarnings = useMemo(() => {
-    const now = new Date();
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
-
-    return myWork
-      .filter((t) => {
-        const invite = t.invites.find((inv) => inv.userId === currentUser?.id);
-        const tenderMonth = t.date.getMonth();
-        const tenderYear = t.date.getFullYear();
-        return (
-          invite?.status === 'accepted' &&
-          tenderMonth === currentMonth &&
-          tenderYear === currentYear &&
-          t.date <= now
-        );
-      })
-      .reduce((sum, t) => sum + t.pay, 0);
-  }, [myWork, currentUser]);
-
-  const upcomingShifts = useMemo(() => {
-    const now = new Date();
-    return myWork.filter((t) => {
-      const invite = t.invites.find((inv) => inv.userId === currentUser?.id);
-      return invite?.status === 'accepted' && t.date >= now;
-    }).length;
-  }, [myWork, currentUser]);
-
-  const hasLowCredits = currentUser && currentUser.credits < 3;
-  const hasNoCredits = currentUser && currentUser.credits === 0;
 
   const animateButton = () => {
     Animated.sequence([
@@ -117,7 +72,7 @@ export default function UnifiedDashboard() {
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={mode === 'work' ? ['#ECFDF5', '#F0FDF4', '#FFFFFF'] : ['#EEF2FF', '#F8FAFC', '#FFFFFF']}
+        colors={mode === 'work' ? ['#ECFDF5', '#F0FDF4', colors.background] : ['#EEF2FF', '#F8FAFC', colors.background]}
         locations={[0, 0.3, 1]}
         style={StyleSheet.absoluteFill}
       />
@@ -128,26 +83,26 @@ export default function UnifiedDashboard() {
               style={styles.languageButton}
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                setLanguage(language === 'he' ? 'en' : 'he');
+                switchLanguage(language === 'he' ? 'en' : 'he');
               }}
             >
-              <Languages size={20} color={mode === 'work' ? '#10B981' : '#4F46E5'} />
-              <Text style={[styles.languageText, { color: mode === 'work' ? '#059669' : '#4F46E5' }]}>
+              <Languages size={20} color={mode === 'work' ? colors.success : colors.primary} />
+              <Text style={[styles.languageText, { color: mode === 'work' ? colors.successDark : colors.primary }]}>
                 {language === 'he' ? 'EN' : 'HE'}
               </Text>
             </TouchableOpacity>
           </View>
           <View style={styles.headerContent}>
             <TouchableOpacity 
-              style={[styles.avatarPlaceholder, { shadowColor: mode === 'work' ? '#10B981' : '#4F46E5' }]}
+              style={[styles.avatarPlaceholder, { shadowColor: mode === 'work' ? colors.success : colors.primary }]}
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                router.push('/(tabs)/settings' as any);
+                router.push('/(tabs)/settings');
               }}
               activeOpacity={0.8}
             >
               <LinearGradient
-                colors={mode === 'work' ? ['#10B981', '#059669'] : ['#6366F1', '#4F46E5']}
+                colors={mode === 'work' ? [colors.success, colors.successDark] : [colors.primaryLight, colors.primary]}
                 style={styles.avatarGradient}
               >
                 <Text style={styles.avatarText}>
@@ -156,7 +111,7 @@ export default function UnifiedDashboard() {
               </LinearGradient>
             </TouchableOpacity>
             <View style={styles.headerText}>
-              <Text style={styles.greeting}>שלום, {currentUser?.name || 'משתמש'}</Text>
+              <Text style={styles.greeting}>{t('dashboard.greeting')}, {currentUser?.name || 'משתמש'}</Text>
               {mode === 'hire' && (
                 <View style={styles.creditsRow}>
                   <TouchableOpacity 
@@ -174,8 +129,8 @@ export default function UnifiedDashboard() {
                       }
                     }}
                   >
-                    <Coins size={16} color="#F59E0B" />
-                    <Text style={[styles.creditsText, { color: '#D97706' }]}>{currentUser?.credits || 0} קרדיטים</Text>
+                    <Coins size={16} color={colors.warning} />
+                    <Text style={[styles.creditsText, { color: colors.warningDark }]}>{currentUser?.credits || 0} {t('dashboard.credits')}</Text>
                   </TouchableOpacity>
                 </View>
               )}
@@ -189,7 +144,7 @@ export default function UnifiedDashboard() {
               style={[
                 styles.modeButton,
                 mode === 'work' && styles.modeButtonActive,
-                mode === 'work' && { shadowColor: '#10B981' },
+                mode === 'work' && { shadowColor: colors.success },
               ]}
               onPress={() => {
                 animateButton();
@@ -198,13 +153,13 @@ export default function UnifiedDashboard() {
             >
               {mode === 'work' && (
                 <LinearGradient
-                  colors={['#10B981', '#059669']}
+                  colors={[colors.success, colors.successDark]}
                   style={styles.modeButtonGradient}
                 />
               )}
               <Briefcase
                 size={20}
-                color={mode === 'work' ? '#FFFFFF' : '#6B7280'}
+                color={mode === 'work' ? colors.background : colors.textMuted}
                 style={{ zIndex: 1 }}
               />
               <Text
@@ -213,7 +168,7 @@ export default function UnifiedDashboard() {
                   mode === 'work' && styles.modeButtonTextActive,
                 ]}
               >
-                מחפש עבודה
+                {t('dashboard.modeWork')}
               </Text>
             </Pressable>
 
@@ -229,13 +184,13 @@ export default function UnifiedDashboard() {
             >
               {mode === 'hire' && (
                 <LinearGradient
-                  colors={['#6366F1', '#4F46E5']}
+                  colors={[colors.primaryLight, colors.primary]}
                   style={styles.modeButtonGradient}
                 />
               )}
               <Users
                 size={20}
-                color={mode === 'hire' ? '#FFFFFF' : '#6B7280'}
+                color={mode === 'hire' ? colors.background : colors.textMuted}
                 style={{ zIndex: 1 }}
               />
               <Text
@@ -244,7 +199,7 @@ export default function UnifiedDashboard() {
                   mode === 'hire' && styles.modeButtonTextActive,
                 ]}
               >
-                מגייס עובדים
+                {t('dashboard.modeHire')}
               </Text>
             </Pressable>
           </BlurView>
@@ -261,9 +216,10 @@ export default function UnifiedDashboard() {
               currentUser={currentUser}
               monthlyEarnings={monthlyEarnings}
               upcomingShifts={upcomingShifts}
+              t={t}
             />
           ) : (
-            <HireView tenders={myTenders} hasNoCredits={hasNoCredits || false} hasLowCredits={hasLowCredits || false} />
+            <HireView tenders={myTenders} hasNoCredits={hasNoCredits} hasLowCredits={hasLowCredits} t={t} />
           )}
         </ScrollView>
       </SafeAreaView>
@@ -276,11 +232,13 @@ function WorkView({
   currentUser,
   monthlyEarnings,
   upcomingShifts,
+  t,
 }: {
   tenders: Tender[];
   currentUser: any;
   monthlyEarnings: number;
   upcomingShifts: number;
+  t: (key: string) => string;
 }) {
   const getInviteForUser = (tender: Tender) => {
     return tender.invites.find((inv) => inv.userId === currentUser?.id);
@@ -292,56 +250,55 @@ function WorkView({
 
     switch (invite.status) {
       case 'pending':
-        return { text: 'ממתין', color: '#F59E0B', bg: 'rgba(251, 191, 36, 0.15)' };
+        return { text: t('dashboard.statusPending'), color: colors.warning, bg: 'rgba(251, 191, 36, 0.15)' };
       case 'accepted':
-        return { text: 'אושר', color: '#059669', bg: 'rgba(16, 185, 129, 0.15)' };
+        return { text: t('dashboard.statusAccepted'), color: colors.successDark, bg: 'rgba(16, 185, 129, 0.15)' };
       case 'rejected':
-        return { text: 'נדחה', color: '#DC2626', bg: 'rgba(239, 68, 68, 0.15)' };
+        return { text: t('dashboard.statusRejected'), color: colors.error, bg: 'rgba(239, 68, 68, 0.15)' };
       default:
-        return { text: invite.status, color: '#6B7280', bg: 'rgba(156, 163, 175, 0.15)' };
+        return { text: invite.status, color: colors.textMuted, bg: 'rgba(156, 163, 175, 0.15)' };
     }
   };
 
   return (
     <>
       <View style={styles.statsRow}>
-        <View style={[styles.statCard, styles.statCardPrimary, { shadowColor: '#10B981' }]}>
+        <View style={[styles.statCard, styles.statCardPrimary, { shadowColor: colors.success }]}>
           <LinearGradient
-            colors={['#10B981', '#059669', '#047857']}
+            colors={[colors.success, colors.successDark, colors.successDarker]}
             style={styles.statCardGradient}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
           >
             <View style={styles.statIconContainer}>
-              <TrendingUp size={24} color="#FFFFFF" />
+              <TrendingUp size={24} color={colors.background} />
             </View>
             <Text style={styles.statValue}>₪{monthlyEarnings.toLocaleString()}</Text>
-            <Text style={styles.statLabel}>רווח החודש</Text>
+            <Text style={styles.statLabel}>{t('dashboard.monthlyEarnings')}</Text>
           </LinearGradient>
         </View>
 
         <View style={styles.statCard}>
           <BlurView intensity={60} tint="light" style={styles.statCardBlur}>
             <View style={[styles.statIconContainer, styles.statIconSecondary]}>
-              <CalendarClock size={24} color="#10B981" />
+              <CalendarClock size={24} color={colors.success} />
             </View>
             <Text style={styles.statValueSecondary}>{upcomingShifts}</Text>
-            <Text style={styles.statLabelSecondary}>משמרות קרובות</Text>
+            <Text style={styles.statLabelSecondary}>{t('dashboard.upcomingShifts')}</Text>
           </BlurView>
         </View>
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>הזמנות פתוחות</Text>
+        <Text style={styles.sectionTitle}>{t('dashboard.openInvitations')}</Text>
 
         {tenders.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Briefcase size={48} color="#D1D5DB" />
-            <Text style={styles.emptyStateText}>אין הזמנות פעילות</Text>
-            <Text style={styles.emptyStateSubtext}>
-              הזמנות לעבודה יופיעו כאן
-            </Text>
-          </View>
+          <EmptyState
+            icon={Briefcase}
+            title={t('dashboard.noInvitations')}
+            subtitle={t('dashboard.noInvitationsDesc')}
+            iconColor={colors.borderLight}
+          />
         ) : (
           tenders.map((tender, index) => {
             const status = getStatusBadge(tender);
@@ -363,7 +320,7 @@ function WorkView({
                   ]}
                   onPress={() => {
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                    router.push(`/participant/tender-details?id=${tender.id}` as any);
+                    router.push({ pathname: '/participant/tender-details', params: { id: tender.id } });
                   }}
                 >
                   <View style={styles.tenderHeader}>
@@ -379,30 +336,30 @@ function WorkView({
 
                   <View style={styles.organizerInfo}>
                     <Text style={styles.organizerText}>
-                      מאת {tender.organizerName}
+                      {t('dashboard.by')} {tender.organizerName}
                     </Text>
                   </View>
 
                   <View style={styles.tenderDetails}>
                     <View style={styles.detailRow}>
                       <Text style={styles.detailText}>{formatDate(tender.date)}</Text>
-                      <Calendar size={16} color="#6B7280" />
+                      <Calendar size={16} color={colors.textMuted} />
                     </View>
                     <View style={styles.detailRow}>
                       <Text style={styles.detailText}>
                         {tender.startTime} - {tender.endTime}
                       </Text>
-                      <Clock size={16} color="#6B7280" />
+                      <Clock size={16} color={colors.textMuted} />
                     </View>
                     <View style={styles.detailRow}>
                       <Text style={styles.payText}>₪{tender.pay}</Text>
-                      <DollarSign size={16} color="#059669" />
+                      <DollarSign size={16} color={colors.successDark} />
                     </View>
                   </View>
 
                   {invite.status === 'pending' && (
                     <View style={styles.pendingIndicator}>
-                      <Text style={styles.pendingText}>לחץ לתגובה</Text>
+                      <Text style={styles.pendingText}>{t('dashboard.clickToRespond')}</Text>
                     </View>
                   )}
                 </Pressable>
@@ -415,7 +372,7 @@ function WorkView({
   );
 }
 
-function HireView({ tenders, hasNoCredits, hasLowCredits }: { tenders: Tender[]; hasNoCredits: boolean; hasLowCredits: boolean }) {
+function HireView({ tenders, hasNoCredits, hasLowCredits, t }: { tenders: Tender[]; hasNoCredits: boolean; hasLowCredits: boolean; t: (key: string) => string }) {
   const getAcceptedCount = (tender: Tender) => {
     return tender.invites.filter((inv) => inv.status === 'accepted').length;
   };
@@ -425,21 +382,21 @@ function HireView({ tenders, hasNoCredits, hasLowCredits }: { tenders: Tender[];
       {hasLowCredits && (
         <TouchableOpacity style={styles.creditsBanner} activeOpacity={0.8}>
           <LinearGradient
-            colors={hasNoCredits ? ['#EF4444', '#DC2626'] : ['#F59E0B', '#D97706']}
+            colors={hasNoCredits ? [colors.errorLight, colors.error] : [colors.warning, colors.warningDark]}
             style={styles.creditsBannerGradient}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
           >
-            <Sparkles size={24} color="#FFFFFF" />
+            <Sparkles size={24} color={colors.background} />
             <View style={styles.creditsBannerContent}>
               <Text style={styles.creditsBannerTitle}>
-                {hasNoCredits ? 'אזלו הקרדיטים' : 'קרדיטים נמוכים'}
+                {hasNoCredits ? t('dashboard.creditsOut') : t('dashboard.creditsLow')}
               </Text>
               <Text style={styles.creditsBannerSubtitle}>
-                {hasNoCredits ? 'לחץ על הקרדיטים למעלה להוסיף' : 'מומלץ להוסיף קרדיטים'}
+                {hasNoCredits ? t('dashboard.creditsOutDesc') : t('dashboard.creditsLowDesc')}
               </Text>
             </View>
-            <ChevronLeft size={20} color="#FFFFFF" />
+            <ChevronLeft size={20} color={colors.background} />
           </LinearGradient>
         </TouchableOpacity>
       )}
@@ -448,38 +405,37 @@ function HireView({ tenders, hasNoCredits, hasLowCredits }: { tenders: Tender[];
         style={styles.createTenderCTA}
         onPress={() => {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-          router.push('/organizer/create-tender' as any);
+          router.push('/organizer/create-tender');
         }}
         activeOpacity={0.8}
       >
         <LinearGradient
-          colors={['#6366F1', '#4F46E5']}
+          colors={[colors.primaryLight, colors.primary]}
           style={styles.ctaGradient}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
         >
           <View style={styles.ctaIconContainer}>
-            <Plus size={32} color="#FFFFFF" />
+            <Plus size={32} color={colors.background} />
           </View>
           <View style={styles.ctaContent}>
-            <Text style={styles.ctaTitle}>צור מכרז חדש</Text>
-            <Text style={styles.ctaSubtitle}>גייס עובדים במהירות ובקלות</Text>
+            <Text style={styles.ctaTitle}>{t('dashboard.createTenderCTA')}</Text>
+            <Text style={styles.ctaSubtitle}>{t('dashboard.createTenderDesc')}</Text>
           </View>
-          <ChevronLeft size={24} color="#FFFFFF" />
+          <ChevronLeft size={24} color={colors.background} />
         </LinearGradient>
       </TouchableOpacity>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>המכרזים שלי</Text>
+        <Text style={styles.sectionTitle}>{t('dashboard.myTenders')}</Text>
 
         {tenders.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Users size={48} color="#D1D5DB" />
-            <Text style={styles.emptyStateText}>אין מכרזים פעילים</Text>
-            <Text style={styles.emptyStateSubtext}>
-              צור מכרז ראשון כדי להתחיל
-            </Text>
-          </View>
+          <EmptyState
+            icon={Users}
+            title={t('dashboard.noTenders')}
+            subtitle={t('dashboard.noTendersDesc')}
+            iconColor={colors.borderLight}
+          />
         ) : (
           tenders.map((tender, index) => {
             const acceptedCount = getAcceptedCount(tender);
@@ -499,7 +455,7 @@ function HireView({ tenders, hasNoCredits, hasLowCredits }: { tenders: Tender[];
                   ]}
                   onPress={() => {
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                    router.push(`/organizer/tender-details?id=${tender.id}` as any);
+                    router.push({ pathname: '/organizer/tender-details', params: { id: tender.id } });
                   }}
                 >
                   <View style={styles.tenderHeader}>
@@ -524,13 +480,13 @@ function HireView({ tenders, hasNoCredits, hasLowCredits }: { tenders: Tender[];
                   <View style={styles.tenderDetails}>
                     <View style={styles.detailRow}>
                       <Text style={styles.detailText}>{formatDate(tender.date)}</Text>
-                      <Calendar size={16} color="#6B7280" />
+                      <Calendar size={16} color={colors.textMuted} />
                     </View>
                     <View style={styles.detailRow}>
                       <Text style={styles.detailText}>
                         {tender.startTime} - {tender.endTime}
                       </Text>
-                      <Clock size={16} color="#6B7280" />
+                      <Clock size={16} color={colors.textMuted} />
                     </View>
                   </View>
 
@@ -539,7 +495,7 @@ function HireView({ tenders, hasNoCredits, hasLowCredits }: { tenders: Tender[];
                       <Text style={styles.progressCount}>
                         {acceptedCount} / {tender.quota}
                       </Text>
-                      <Text style={styles.progressLabel}>עובדים</Text>
+                      <Text style={styles.progressLabel}>{t('dashboard.workers')}</Text>
                     </View>
                     <View style={styles.progressBar}>
                       <View
@@ -549,10 +505,10 @@ function HireView({ tenders, hasNoCredits, hasLowCredits }: { tenders: Tender[];
                             width: `${Math.min(progress, 100)}%`,
                             backgroundColor:
                               progress >= 100
-                                ? '#059669'
+                                ? colors.successDark
                                 : progress >= 70
-                                ? '#F59E0B'
-                                : '#4F46E5',
+                                ? colors.warning
+                                : colors.primary,
                           },
                         ]}
                       />
@@ -580,7 +536,7 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0, 0, 0, 0.05)',
+    borderBottomColor: colors.glassBorder,
     overflow: 'hidden',
     position: 'relative',
   },
@@ -630,7 +586,7 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 24,
     fontWeight: '700' as const,
-    color: '#FFFFFF',
+    color: colors.background,
   },
   headerText: {
     flex: 1,
@@ -639,7 +595,7 @@ const styles = StyleSheet.create({
   greeting: {
     fontSize: 24,
     fontWeight: '700' as const,
-    color: '#111827',
+    color: colors.text,
     marginBottom: 4,
   },
   creditsRow: {
@@ -670,7 +626,7 @@ const styles = StyleSheet.create({
     gap: 4,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.05)',
+    borderColor: colors.glassBorder,
   },
   modeButton: {
     flex: 1,
@@ -700,11 +656,11 @@ const styles = StyleSheet.create({
   modeButtonText: {
     fontSize: 15,
     fontWeight: '600' as const,
-    color: '#6B7280',
+    color: colors.textMuted,
     zIndex: 1,
   },
   modeButtonTextActive: {
-    color: '#FFFFFF',
+    color: colors.background,
   },
   scrollView: {
     flex: 1,
@@ -749,7 +705,7 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 32,
     fontWeight: '700' as const,
-    color: '#FFFFFF',
+    color: colors.background,
     marginBottom: 4,
     textAlign: 'right',
   },
@@ -762,13 +718,13 @@ const styles = StyleSheet.create({
   statValueSecondary: {
     fontSize: 32,
     fontWeight: '700' as const,
-    color: '#111827',
+    color: colors.text,
     marginBottom: 4,
     textAlign: 'right',
   },
   statLabelSecondary: {
     fontSize: 14,
-    color: '#6B7280',
+    color: colors.textMuted,
     textAlign: 'right',
     fontWeight: '500' as const,
   },
@@ -795,7 +751,7 @@ const styles = StyleSheet.create({
   creditsBannerTitle: {
     fontSize: 18,
     fontWeight: '700' as const,
-    color: '#FFFFFF',
+    color: colors.background,
     marginBottom: 2,
   },
   creditsBannerSubtitle: {
@@ -806,7 +762,7 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     overflow: 'hidden',
     marginBottom: 24,
-    shadowColor: '#4F46E5',
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.3,
     shadowRadius: 20,
@@ -833,7 +789,7 @@ const styles = StyleSheet.create({
   ctaTitle: {
     fontSize: 22,
     fontWeight: '700' as const,
-    color: '#FFFFFF',
+    color: colors.background,
     marginBottom: 4,
   },
   ctaSubtitle: {
@@ -846,7 +802,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 22,
     fontWeight: '700' as const,
-    color: '#111827',
+    color: colors.text,
     marginBottom: 16,
     textAlign: 'right',
   },
@@ -858,28 +814,28 @@ const styles = StyleSheet.create({
   emptyStateText: {
     fontSize: 18,
     fontWeight: '600' as const,
-    color: '#6B7280',
+    color: colors.textMuted,
     marginTop: 16,
     marginBottom: 4,
     textAlign: 'center',
   },
   emptyStateSubtext: {
     fontSize: 14,
-    color: '#9CA3AF',
+    color: colors.muted,
     textAlign: 'center',
   },
   tenderCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    backgroundColor: colors.glassBackground,
     borderRadius: 24,
     padding: 20,
     marginBottom: 16,
-    shadowColor: '#4F46E5',
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.12,
     shadowRadius: 24,
     elevation: 10,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.8)',
+    borderColor: colors.glassBackgroundStrong,
   },
   tenderCardPressed: {
     opacity: 0.9,
@@ -894,7 +850,7 @@ const styles = StyleSheet.create({
   tenderTitle: {
     fontSize: 18,
     fontWeight: '600' as const,
-    color: '#111827',
+    color: colors.text,
     flex: 1,
     marginRight: 8,
     textAlign: 'right',
@@ -913,7 +869,7 @@ const styles = StyleSheet.create({
   },
   organizerText: {
     fontSize: 14,
-    color: '#6B7280',
+    color: colors.textMuted,
     textAlign: 'right',
   },
   tenderDetails: {
@@ -927,24 +883,24 @@ const styles = StyleSheet.create({
   },
   detailText: {
     fontSize: 14,
-    color: '#6B7280',
+    color: colors.textMuted,
   },
   payText: {
     fontSize: 14,
     fontWeight: '600' as const,
-    color: '#059669',
+    color: colors.successDark,
   },
   pendingIndicator: {
     marginTop: 8,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(0, 0, 0, 0.05)',
+    borderTopColor: colors.glassBorder,
     alignItems: 'center',
   },
   pendingText: {
     fontSize: 14,
     fontWeight: '600' as const,
-    color: '#F59E0B',
+    color: colors.warning,
   },
   progressSection: {
     marginTop: 4,
@@ -958,16 +914,16 @@ const styles = StyleSheet.create({
   progressLabel: {
     fontSize: 14,
     fontWeight: '500' as const,
-    color: '#374151',
+    color: colors.textSecondary,
   },
   progressCount: {
     fontSize: 14,
     fontWeight: '600' as const,
-    color: '#111827',
+    color: colors.text,
   },
   progressBar: {
     height: 8,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: colors.border,
     borderRadius: 4,
     overflow: 'hidden',
   },

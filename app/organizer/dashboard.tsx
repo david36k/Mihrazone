@@ -61,7 +61,7 @@ export default function OrganizerDashboard() {
 
           <TouchableOpacity
             style={styles.createButton}
-            onPress={() => router.push('/organizer/create-tender' as any)}
+            onPress={() => router.push('/organizer/create-tender')}
           >
             <Plus size={24} color="#FFFFFF" />
             <Text style={styles.createButtonText}>Create New Tender</Text>
@@ -85,7 +85,7 @@ export default function OrganizerDashboard() {
                   <TouchableOpacity
                     key={tender.id}
                     style={styles.tenderCard}
-                    onPress={() => router.push(`/organizer/tender-details?id=${tender.id}` as any)}
+                    onPress={() => router.push({ pathname: '/organizer/tender-details', params: { id: tender.id } })}
                   >
                     <View style={styles.tenderHeader}>
                       <Text style={styles.tenderTitle}>{tender.title}</Text>

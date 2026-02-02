@@ -1,4 +1,5 @@
 import { useApp } from '@/contexts/AppContext';
+import { colors } from '@/constants/colors';
 import { router } from 'expo-router';
 import { useEffect, useState, useRef } from 'react';
 import { supabaseQueries } from '@/utils/supabase-queries';
@@ -16,7 +17,7 @@ import {
   ScrollView,
   Modal,
 } from 'react-native';
-import { Phone, CheckCircle } from 'lucide-react-native';
+import { Phone } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
@@ -24,8 +25,6 @@ import * as Haptics from 'expo-haptics';
 export default function Index() {
   const { currentUser, switchUser, isInitialized } = useApp();
   const [phoneNumber, setPhoneNumber] = useState<string>('');
-  const [otpCode, setOtpCode] = useState<string>('');
-  const [showOtp, setShowOtp] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [showTermsModal, setShowTermsModal] = useState<boolean>(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState<boolean>(false);
@@ -52,6 +51,7 @@ export default function Index() {
     onSuccess: (user) => {
       switchUser(user.id);
       setIsLoading(false);
+      router.replace('/(tabs)/dashboard');
     },
     onError: (error) => {
       console.error('[Login] Failed:', error);
@@ -62,7 +62,7 @@ export default function Index() {
   useEffect(() => {
     console.log('[Index] isInitialized:', isInitialized, 'currentUser:', currentUser?.id);
     if (isInitialized && currentUser) {
-      router.replace('/(tabs)/dashboard' as any);
+      router.replace('/(tabs)/dashboard');
     }
   }, [currentUser, isInitialized]);
 
@@ -91,40 +91,17 @@ export default function Index() {
     );
   }
 
-  const handleSendOtp = async () => {
+  const handleLogin = () => {
     const cleanPhone = phoneNumber.replace(/\D/g, '');
     if (!cleanPhone || cleanPhone.length < 9) {
-      return;
-    }
-
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setIsLoading(true);
-
-    setTimeout(() => {
-      setIsLoading(false);
-      setShowOtp(true);
-    }, 500);
-  };
-
-  const handleLogin = async () => {
-    if (!showOtp) {
-      await handleSendOtp();
-      return;
-    }
-
-    if (!otpCode || otpCode.length < 4) {
       return;
     }
 
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setIsLoading(true);
 
-    const cleanPhone = phoneNumber.replace(/\D/g, '');
     const formattedPhone = cleanPhone.startsWith('0') ? `+972${cleanPhone.substring(1)}` : `+${cleanPhone}`;
-    
-    setTimeout(() => {
-      loginMutation.mutate(formattedPhone);
-    }, 300);
+    loginMutation.mutate(formattedPhone);
   };
 
   return (
@@ -156,7 +133,7 @@ export default function Index() {
             >
               <View style={styles.logoContainer}>
                 <View style={styles.logoCircle}>
-                  <Phone size={48} color="#4F46E5" strokeWidth={2} />
+                  <Phone size={48} color={colors.primary} strokeWidth={2} />
                 </View>
                 <Text style={styles.title}>Jobii</Text>
                 <Text style={styles.subtitle}>התחבר עם מספר הטלפון שלך</Text>
@@ -169,7 +146,7 @@ export default function Index() {
                     <TextInput
                       style={styles.phoneInput}
                       placeholder="050-123-4567"
-                      placeholderTextColor="#9CA3AF"
+                      placeholderTextColor={colors.muted}
                       keyboardType="phone-pad"
                       value={phoneNumber}
                       onChangeText={setPhoneNumber}
@@ -179,23 +156,6 @@ export default function Index() {
                       autoFocus={false}
                     />
                   </View>
-
-                  {showOtp && (
-                    <Animated.View style={styles.otpContainer}>
-                      <Text style={styles.label}>קוד אימות</Text>
-                      <TextInput
-                        style={styles.otpInput}
-                        placeholder="0000"
-                        placeholderTextColor="#9CA3AF"
-                        keyboardType="number-pad"
-                        value={otpCode}
-                        onChangeText={setOtpCode}
-                        maxLength={6}
-                        textAlign="center"
-                      />
-                      <Text style={styles.otpHint}>הזן את קוד האימות שנשלח אליך</Text>
-                    </Animated.View>
-                  )}
 
                   <TouchableOpacity
                     style={[
@@ -207,21 +167,14 @@ export default function Index() {
                     activeOpacity={0.8}
                   >
                     <LinearGradient
-                      colors={['#4F46E5', '#6366F1']}
+                      colors={[colors.primary, colors.primaryLight]}
                       start={{ x: 0, y: 0 }}
                       end={{ x: 1, y: 1 }}
                       style={styles.loginButtonGradient}
                     >
-                      {isLoading ? (
-                        <Text style={styles.loginButtonText}>מתחבר...</Text>
-                      ) : showOtp ? (
-                        <View style={styles.loginButtonContent}>
-                          <CheckCircle size={20} color="#FFFFFF" />
-                          <Text style={styles.loginButtonText}>התחבר</Text>
-                        </View>
-                      ) : (
-                        <Text style={styles.loginButtonText}>שלח קוד</Text>
-                      )}
+                      <Text style={styles.loginButtonText}>
+                        {isLoading ? 'מתחבר...' : 'התחבר'}
+                      </Text>
                     </LinearGradient>
                   </TouchableOpacity>
                 </View>
@@ -344,7 +297,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 18,
-    color: '#6B7280',
+    color: colors.textMuted,
   },
   logoContainer: {
     alignItems: 'center',
@@ -354,11 +307,11 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backgroundColor: colors.glassBackgroundStrong,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 24,
-    shadowColor: '#4F46E5',
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.15,
     shadowRadius: 20,
@@ -367,19 +320,19 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 42,
     fontWeight: '800' as const,
-    color: '#111827',
+    color: colors.text,
     marginBottom: 8,
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
-    color: '#6B7280',
+    color: colors.textMuted,
     textAlign: 'center',
   },
   formCard: {
     borderRadius: 28,
     overflow: 'hidden',
-    shadowColor: '#4F46E5',
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.1,
     shadowRadius: 25,
@@ -387,56 +340,35 @@ const styles = StyleSheet.create({
   },
   formCardInner: {
     padding: 28,
-    backgroundColor: 'rgba(255, 255, 255, 0.85)',
+    backgroundColor: colors.glassBackgroundStrong,
   },
   label: {
     fontSize: 15,
     fontWeight: '600' as const,
-    color: '#374151',
+    color: colors.textSecondary,
     marginBottom: 12,
     textAlign: 'right',
   },
   phoneInputContainer: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: colors.backgroundAlt,
     borderRadius: 16,
     paddingHorizontal: 16,
     borderWidth: 2,
-    borderColor: '#E5E7EB',
+    borderColor: colors.border,
   },
   phoneInput: {
     fontSize: 18,
     fontWeight: '600' as const,
-    color: '#111827',
+    color: colors.text,
     paddingVertical: 16,
     paddingHorizontal: 12,
     textAlign: 'right',
-  },
-  otpContainer: {
-    marginTop: 24,
-  },
-  otpInput: {
-    backgroundColor: '#F9FAFB',
-    borderRadius: 16,
-    paddingVertical: 20,
-    paddingHorizontal: 16,
-    fontSize: 28,
-    fontWeight: '700' as const,
-    color: '#111827',
-    borderWidth: 2,
-    borderColor: '#E5E7EB',
-    letterSpacing: 8,
-  },
-  otpHint: {
-    fontSize: 13,
-    color: '#6B7280',
-    textAlign: 'center',
-    marginTop: 8,
   },
   loginButton: {
     marginTop: 28,
     borderRadius: 16,
     overflow: 'hidden',
-    shadowColor: '#4F46E5',
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 12,
@@ -450,15 +382,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  loginButtonContent: {
-    flexDirection: 'row-reverse',
-    alignItems: 'center',
-    gap: 8,
-  },
   loginButtonText: {
     fontSize: 18,
     fontWeight: '700' as const,
-    color: '#FFFFFF',
+    color: colors.background,
   },
   footer: {
     marginTop: 40,
@@ -473,21 +400,21 @@ const styles = StyleSheet.create({
   footerLink: {
     fontSize: 14,
     fontWeight: '600' as const,
-    color: '#4F46E5',
+    color: colors.primary,
   },
   footerSeparator: {
     fontSize: 14,
-    color: '#9CA3AF',
+    color: colors.muted,
   },
   footerText: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: colors.muted,
     textAlign: 'center',
     lineHeight: 18,
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: colors.backgroundAlt,
   },
   modalHeader: {
     flexDirection: 'row',
@@ -496,24 +423,24 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 20,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0, 0, 0, 0.05)',
+    borderBottomColor: colors.glassBorder,
   },
   modalTitle: {
     fontSize: 22,
     fontWeight: '700' as const,
-    color: '#111827',
+    color: colors.text,
   },
   modalCloseButton: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    backgroundColor: colors.glassBorder,
     alignItems: 'center',
     justifyContent: 'center',
   },
   modalCloseText: {
     fontSize: 20,
-    color: '#6B7280',
+    color: colors.textMuted,
     fontWeight: '600' as const,
   },
   modalContent: {
@@ -525,7 +452,7 @@ const styles = StyleSheet.create({
   modalText: {
     fontSize: 16,
     lineHeight: 28,
-    color: '#374151',
+    color: colors.textSecondary,
     textAlign: 'right',
   },
 });

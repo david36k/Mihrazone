@@ -1,8 +1,28 @@
-# Welcome to your Rork app
+# Jobii
 
-## Project info
+Native cross-platform mobile app for tender/shift management (two-sided marketplace: Work / Hire). Built with Expo Router, React Native, TypeScript, and Supabase.
 
-This is a native cross-platform mobile app created with [Rork](https://rork.com)
+## Getting started
+
+**Environment variables** (required for Supabase):
+
+- `EXPO_PUBLIC_SUPABASE_URL` – your Supabase project URL  
+- `EXPO_PUBLIC_SUPABASE_ANON_KEY` – your Supabase anon key  
+
+Copy `.env.example` to `.env` and fill in the values. The Supabase client is initialized only in `lib/supabase.ts`.
+
+**Run the app:**
+
+- `bun run start` – start dev server (uses Rork CLI; press `i` for iOS Simulator or scan QR for device)
+- `bun run start-web` – web preview
+
+See [AUDIT_REPORT.md](AUDIT_REPORT.md) for architecture and audit findings.
+
+---
+
+## Project info (Rork)
+
+This project was created with [Rork](https://rork.com). The start scripts use the Rork CLI (`bunx rork start`); the app is built with Expo under the hood.
 
 **Platform**: Native iOS & Android app, exportable to web
 **Framework**: Expo Router + React Native
