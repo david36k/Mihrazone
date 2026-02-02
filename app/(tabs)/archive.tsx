@@ -123,13 +123,13 @@ export default function ArchiveScreen() {
                 transition={{ type: 'timing', duration: 400 }}
                 style={styles.statCard}
               >
-                <BlurView intensity={60} tint="light" style={styles.statCardBlur}>
+                <View style={styles.statCardContent}>
                   <View style={[styles.statIcon, { backgroundColor: 'rgba(124, 58, 237, 0.1)' }]}>
                     <Package size={24} color="#7C3AED" />
                   </View>
                   <Text style={styles.statValue}>{stats.totalCompleted}</Text>
                   <Text style={styles.statLabel}>{t('archive.totalCompleted')}</Text>
-                </BlurView>
+                </View>
               </MotiView>
 
               <MotiView
@@ -138,13 +138,13 @@ export default function ArchiveScreen() {
                 transition={{ type: 'timing', duration: 400, delay: 100 }}
                 style={styles.statCard}
               >
-                <BlurView intensity={60} tint="light" style={styles.statCardBlur}>
+                <View style={styles.statCardContent}>
                   <View style={[styles.statIcon, { backgroundColor: 'rgba(59, 130, 246, 0.1)' }]}>
                     <Users size={24} color="#3B82F6" />
                   </View>
                   <Text style={styles.statValue}>{stats.organized}</Text>
                   <Text style={styles.statLabel}>{t('archive.organized')}</Text>
-                </BlurView>
+                </View>
               </MotiView>
             </View>
 
@@ -155,13 +155,13 @@ export default function ArchiveScreen() {
                 transition={{ type: 'timing', duration: 400, delay: 200 }}
                 style={styles.statCard}
               >
-                <BlurView intensity={60} tint="light" style={styles.statCardBlur}>
+                <View style={styles.statCardContent}>
                   <View style={[styles.statIcon, { backgroundColor: 'rgba(16, 185, 129, 0.1)' }]}>
                     <Briefcase size={24} color="#10B981" />
                   </View>
                   <Text style={styles.statValue}>{stats.worked}</Text>
                   <Text style={styles.statLabel}>{t('archive.worked')}</Text>
-                </BlurView>
+                </View>
               </MotiView>
 
               <MotiView
@@ -476,11 +476,13 @@ const styles = StyleSheet.create({
     shadowRadius: 16,
     elevation: 8,
   },
-  statCardBlur: {
+  statCardContent: {
     flex: 1,
     padding: 16,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.85)',
+    borderRadius: 20,
   },
   statCardGradient: {
     flex: 1,
