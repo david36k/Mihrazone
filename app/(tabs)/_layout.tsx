@@ -31,11 +31,6 @@ export default function TabsLayout() {
             icon: Users,
           },
           {
-            route: '/groups',
-            label: 'קבוצות',
-            icon: UsersRound,
-          },
-          {
             route: '/archive',
             label: 'מידע',
             icon: Archive,
