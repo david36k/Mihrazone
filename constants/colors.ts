@@ -46,8 +46,6 @@ export const colors = {
 // Legacy light theme (kept for existing imports)
 export default {
   light: {
-    text: colors.text,
-    background: colors.background,
     tint: tintColorLight,
     tabIconDefault: colors.muted,
     tabIconSelected: colors.primary,

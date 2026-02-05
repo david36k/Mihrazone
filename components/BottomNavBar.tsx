@@ -82,7 +82,7 @@ export default function BottomNavBar({ items }: BottomNavBarProps) {
       }),
     ]).start();
 
-    router.push(route);
+    router.push(route as any);
   };
 
   const isActive = (route: string) => {

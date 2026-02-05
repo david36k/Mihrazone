@@ -1,6 +1,6 @@
 import { Stack } from 'expo-router';
 import { View } from 'react-native';
-import { LayoutDashboard, Archive, Users, UsersRound } from 'lucide-react-native';
+import { LayoutDashboard, Archive, Users } from 'lucide-react-native';
 import BottomNavBar from '@/components/BottomNavBar';
 
 export default function TabsLayout() {

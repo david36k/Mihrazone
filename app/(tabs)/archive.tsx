@@ -307,7 +307,7 @@ export default function ArchiveScreen() {
                         const route = isOrganizer
                           ? `/organizer/tender-details?id=${tender.id}`
                           : `/participant/tender-details?id=${tender.id}`;
-                        router.push(route);
+                        router.push(route as any);
                       }}
                     >
                       <View style={styles.cardHeader}>
