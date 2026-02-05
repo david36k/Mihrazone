@@ -52,61 +52,85 @@ export const [AppProvider, useApp] = createContextHook(() => {
   useEffect(() => {
     console.log('[AppContext] Setting up Realtime subscriptions...');
 
-    const tendersChannel = supabase
-      .channel('tenders-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'tenders',
-        },
-        (payload) => {
-          console.log('[Realtime] Tenders change detected:', payload.eventType);
-          queryClient.invalidateQueries({ queryKey: ['tenders'] });
-        }
-      )
-      .subscribe();
+    let tendersChannel: any;
+    let invitesChannel: any;
+    let contactsChannel: any;
 
-    const invitesChannel = supabase
-      .channel('invites-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'invites',
-        },
-        (payload) => {
-          console.log('[Realtime] Invites change detected:', payload.eventType);
-          queryClient.invalidateQueries({ queryKey: ['tenders'] });
-        }
-      )
-      .subscribe();
-
-    const contactsChannel = supabase
-      .channel('contacts-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'contacts',
-        },
-        (payload) => {
-          console.log('[Realtime] Contacts change detected:', payload.eventType);
-          if (currentUserId) {
-            queryClient.invalidateQueries({ queryKey: ['contacts', currentUserId] });
+    try {
+      tendersChannel = supabase
+        .channel('tenders-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'tenders',
+          },
+          (payload) => {
+            console.log('[Realtime] Tenders change detected:', payload.eventType);
+            queryClient.invalidateQueries({ queryKey: ['tenders'] });
           }
-        }
-      )
-      .subscribe();
+        )
+        .subscribe((status) => {
+          if (status === 'CHANNEL_ERROR') {
+            console.warn('[Realtime] Tenders channel error - continuing without realtime');
+          }
+        });
+
+      invitesChannel = supabase
+        .channel('invites-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'invites',
+          },
+          (payload) => {
+            console.log('[Realtime] Invites change detected:', payload.eventType);
+            queryClient.invalidateQueries({ queryKey: ['tenders'] });
+          }
+        )
+        .subscribe((status) => {
+          if (status === 'CHANNEL_ERROR') {
+            console.warn('[Realtime] Invites channel error - continuing without realtime');
+          }
+        });
+
+      contactsChannel = supabase
+        .channel('contacts-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'contacts',
+          },
+          (payload) => {
+            console.log('[Realtime] Contacts change detected:', payload.eventType);
+            if (currentUserId) {
+              queryClient.invalidateQueries({ queryKey: ['contacts', currentUserId] });
+            }
+          }
+        )
+        .subscribe((status) => {
+          if (status === 'CHANNEL_ERROR') {
+            console.warn('[Realtime] Contacts channel error - continuing without realtime');
+          }
+        });
+    } catch (error) {
+      console.error('[Realtime] Failed to setup channels:', error);
+    }
 
     return () => {
       console.log('[AppContext] Cleaning up Realtime subscriptions...');
-      supabase.removeChannel(tendersChannel);
-      supabase.removeChannel(invitesChannel);
-      supabase.removeChannel(contactsChannel);
+      try {
+        if (tendersChannel) supabase.removeChannel(tendersChannel);
+        if (invitesChannel) supabase.removeChannel(invitesChannel);
+        if (contactsChannel) supabase.removeChannel(contactsChannel);
+      } catch (error) {
+        console.error('[Realtime] Cleanup error:', error);
+      }
     };
   }, [queryClient, currentUserId]);
 
